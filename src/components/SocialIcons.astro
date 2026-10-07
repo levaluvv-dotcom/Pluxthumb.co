@@ -12,9 +12,10 @@ interface Props {
 }
 const { lang, size = 'md', class: className } = Astro.props;
 const t = useTranslations(lang);
-const box = size === 'md' ? 'size-11' : 'size-10';
+// sm визуально 40px, но область нажатия расширена до 44px
+const box = size === 'md' ? 'size-11' : 'size-10 relative before:absolute before:-inset-0.5';
 const icon = size === 'md' ? 18 : 16;
-const itemClass = `group inline-flex ${box} items-center justify-center rounded-full border border-line bg-white/[0.03] text-muted transition-[color,border-color,background-color,translate] duration-300 hover:-translate-y-0.5 hover:border-white/40 hover:bg-white/[0.08] hover:text-white`;
+const itemClass = `group inline-flex ${box} items-center justify-center rounded-full border border-line bg-white/[0.03] text-muted transition-[color,border-color,background-color,translate] duration-300 motion-safe:hover:-translate-y-0.5 hover:border-white/40 hover:bg-white/[0.08] hover:text-white`;
 ---
 
 <ul class:list={['flex items-center gap-2.5', className]}>

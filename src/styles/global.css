@@ -61,6 +61,10 @@
     outline-offset: 3px;
     border-radius: 6px;
   }
+  /* Секции получают фокус из кода при переходе по якорю — рамка вокруг всей секции не нужна */
+  :is(main, section)[tabindex='-1']:focus {
+    outline: none;
+  }
 
   img {
     -webkit-user-drag: none;
@@ -97,11 +101,13 @@ html.lenis body {
     width: 100%;
     max-width: 1200px;
     margin-inline: auto;
-    padding-inline: 16px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
   }
   @media (min-width: 768px) {
     .container-page {
-      padding-inline: 32px;
+      padding-left: max(32px, env(safe-area-inset-left, 0px));
+      padding-right: max(32px, env(safe-area-inset-right, 0px));
     }
   }
 
@@ -158,9 +164,6 @@ html.lenis body {
       box-shadow 0.4s ease;
     -webkit-tap-highlight-color: transparent;
   }
-  .btn:active {
-    transform: scale(0.97);
-  }
   .btn-primary {
     background: #fff;
     color: #000;
@@ -179,6 +182,9 @@ html.lenis body {
     border-color: rgb(255 255 255 / 0.5);
     background: rgb(255 255 255 / 0.06);
     transform: translateY(-1px);
+  }
+  .btn:active {
+    transform: translateY(-1px) scale(0.97);
   }
   .btn-sm {
     height: 42px;
@@ -222,8 +228,11 @@ html.lenis body {
 .toast {
   position: fixed;
   left: 50%;
-  bottom: 28px;
+  bottom: calc(28px + env(safe-area-inset-bottom, 0px));
   z-index: 100;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  text-align: center;
   translate: -50% 16px;
   opacity: 0;
   pointer-events: none;
@@ -242,6 +251,17 @@ html.lenis body {
   opacity: 1;
   translate: -50% 0;
 }
+/* Телефон: пока на экране кнопка чата, подсказка стоит левее неё */
+@media (max-width: 767px) {
+  html:has([data-chat][data-shown]) .toast {
+    left: 1.25rem;
+    max-width: calc(100vw - 108px);
+    translate: 0 16px;
+  }
+  html:has([data-chat][data-shown]) .toast.is-visible {
+    translate: 0 0;
+  }
+}
 
 /* Бегущие ленты. Разметка:
    <div data-marquee class="marquee-fade overflow-hidden">
@@ -258,7 +278,8 @@ html.lenis body {
 [data-marquee-track][data-direction='right'] {
   animation-name: marquee-right;
 }
-.is-offscreen [data-marquee-track] {
+.is-offscreen [data-marquee-track],
+html.marquees-paused [data-marquee-track] {
   animation-play-state: paused;
 }
 .marquee-fade {
@@ -282,7 +303,8 @@ html.lenis body {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  [data-marquee-track] {
+  [data-marquee-track],
+  [data-marquee-track][data-direction='right'] {
     animation: none;
   }
   [data-marquee] {
@@ -290,8 +312,14 @@ html.lenis body {
     -webkit-mask-image: none;
     mask-image: none;
   }
-  /* Без анимации второй (дублирующий) набор не нужен */
-  [data-marquee-clone] {
+  /* Без анимации второй (дублирующий) набор и кнопка паузы не нужны */
+  [data-marquee-clone],
+  [data-marquee-toggle] {
     display: none;
+  }
+  .btn,
+  .btn:hover,
+  .btn:active {
+    transform: none;
   }
 }

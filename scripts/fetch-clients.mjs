@@ -25,26 +25,40 @@ const urls = (await readFile(path.join(root, 'scripts/clients.txt'), 'utf8'))
 
 await mkdir(avatarsDir, { recursive: true });
 const clients = [];
+const failed = [];
 
 for (const raw of urls) {
   const handle = /youtube\.com\/(@[^/?#]+)/.exec(raw)?.[1];
   if (!handle) { console.warn(`skip: ${raw}`); continue; }
   const url = `https://www.youtube.com/${handle}`;
-  const html = await (await fetch(url, { headers: { 'user-agent': UA, 'accept-language': 'en-US,en' } })).text();
+  const res = await fetch(url, { headers: { 'user-agent': UA, 'accept-language': 'en-US,en' } });
+  if (!res.ok) { console.warn(`HTTP ${res.status}: ${handle}`); failed.push(handle); continue; }
+  const html = await res.text();
 
   const name = decode(/<meta property="og:title" content="([^"]+)"/.exec(html)?.[1] ?? handle);
   const image = /<meta property="og:image" content="([^"]+)"/.exec(html)?.[1];
   // Подписчики берутся из шапки канала (metadataParts), а не из блока рекомендованных каналов
   const subscribers = /"metadataParts":\[\{"text":\{"content":"([\d.,]+[KMB]?) subscribers?"/.exec(html)?.[1];
-  if (!image || !subscribers) { console.warn(`no data: ${handle}`); continue; }
+  if (!image || !subscribers) { console.warn(`no data: ${handle}`); failed.push(handle); continue; }
 
   const slug = handle.slice(1).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
   const avatarUrl = image.replace(/=s\d+-/, '=s240-');
-  const buf = Buffer.from(await (await fetch(avatarUrl, { headers: { 'user-agent': UA } })).arrayBuffer());
-  await writeFile(path.join(avatarsDir, `${slug}.jpg`), buf);
+  const imgRes = await fetch(avatarUrl, { headers: { 'user-agent': UA } });
+  if (!imgRes.ok || !imgRes.headers.get('content-type')?.startsWith('image/')) {
+    console.warn(`bad avatar: ${handle}`);
+    failed.push(handle);
+    continue;
+  }
+  await writeFile(path.join(avatarsDir, `${slug}.jpg`), Buffer.from(await imgRes.arrayBuffer()));
 
   clients.push({ name, subscribers, avatar: `${slug}.jpg`, url });
   console.log(`${name.padEnd(20)} ${subscribers}`);
+}
+
+// Если хоть один канал не загрузился — не трогаем clients.json, чтобы не потерять клиентов
+if (failed.length) {
+  console.error(`\n${failed.length} channel(s) failed: ${failed.join(', ')}. src/data/clients.json NOT changed.`);
+  process.exit(1);
 }
 
 clients.sort((a, b) => toNumber(b.subscribers) - toNumber(a.subscribers));

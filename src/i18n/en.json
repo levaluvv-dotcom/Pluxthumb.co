@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "Plux Design — YouTube Thumbnail Designer",
-    "description": "Maxim, 19 — YouTube thumbnail designer with 5+ years of experience. 2000+ thumbnails, 200M+ views. Bold, clear visuals that make viewers click."
+    "description": "Maxim, 19 — YouTube thumbnail designer with 5+ years of experience. 2000+ projects, 200M+ views. Bold, clear visuals that make viewers click."
   },
   "nav": {
     "about": "About me",
@@ -11,17 +11,30 @@
     "order": "Order now",
     "menu": "Menu",
     "close": "Close",
-    "language": "Language"
+    "language": "Language",
+    "skip": "Skip to content"
   },
   "hero": {
     "badge": "Available for orders",
     "name": "Maxim, 19",
     "title": "Design for creators",
-    "text": "Thumbnail designer with 5+ years of experience. I create bold, clear visuals that make viewers click.",
+    "text": "Thumbnail designer with 5+ years of experience. I create bold, clear visuals that make viewers click.",
     "stats": [
-      { "value": 5, "suffix": "+", "label": "Years exp." },
-      { "value": 2000, "suffix": "+", "label": "Projects done" },
-      { "value": 200, "suffix": "M+", "label": "Total views" }
+      {
+        "value": 5,
+        "suffix": "+",
+        "label": "Years exp."
+      },
+      {
+        "value": 2000,
+        "suffix": "+",
+        "label": "Projects done"
+      },
+      {
+        "value": 200,
+        "suffix": "M+",
+        "label": "Total views"
+      }
     ],
     "order": "Order now",
     "work": "View work",
@@ -29,6 +42,7 @@
   },
   "wall": {
     "trusted": "Trusted by 15+ creators",
+    "pause": "Pause moving thumbnails",
     "open": "Open thumbnail",
     "close": "Close",
     "prev": "Previous",
@@ -44,11 +58,19 @@
     "cards": [
       {
         "title": "Thumbnail design",
-        "features": ["1 thumbnail", "24-hour delivery", "Unlimited revisions"]
+        "features": [
+          "1 thumbnail",
+          "24-hour delivery",
+          "Unlimited revisions"
+        ]
       },
       {
         "title": "A/B test pack",
-        "features": ["3 thumbnail variants for A/B testing", "48-hour delivery", "Unlimited revisions"]
+        "features": [
+          "3 variants for A/B testing",
+          "48-hour delivery",
+          "Unlimited revisions"
+        ]
       }
     ],
     "order": "Order now"
