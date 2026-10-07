@@ -60,8 +60,8 @@
     pointer-events: none;
     background:
       radial-gradient(65% 50% at 50% -8%, rgb(255 255 255 / 0.1), transparent 70%),
-      radial-gradient(45% 40% at 0% 50%, rgb(255 255 255 / 0.055), transparent 70%),
-      radial-gradient(45% 40% at 100% 80%, rgb(255 255 255 / 0.055), transparent 70%),
+      radial-gradient(45% 40% at 0% 50%, rgb(255 255 255 / 0.0275), transparent 70%),
+      radial-gradient(45% 40% at 100% 80%, rgb(255 255 255 / 0.0275), transparent 70%),
       radial-gradient(70% 45% at 50% 110%, rgb(255 255 255 / 0.04), transparent 70%);
   }
 

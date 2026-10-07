@@ -45,10 +45,10 @@ const delays = [0, 21, 9];
 const pad = (n: number) => String(n).padStart(2, '0');
 
 const itemClass = [
-  'group relative isolate mr-3 block aspect-video w-[260px] shrink-0 cursor-zoom-in overflow-hidden',
+  'group relative isolate mr-3 block aspect-video w-[220px] shrink-0 cursor-zoom-in overflow-hidden',
   'rounded-[14px] border border-line bg-surface-2',
   'transition-[border-color] duration-500 ease-out-expo hover:border-white/30 focus-visible:border-white/40',
-  'sm:w-[340px] md:mr-4 md:w-[440px] md:rounded-[18px]',
+  'sm:w-[290px] md:mr-4 md:w-[370px] md:rounded-[18px]',
   // Едва заметная внутренняя подсветка при наведении (поверх картинки)
   'after:pointer-events-none after:absolute after:inset-0 after:rounded-[inherit] after:opacity-0',
   'after:shadow-[inset_0_0_0_1px_rgb(255_255_255/0.06),inset_0_0_44px_rgb(255_255_255/0.08)]',
@@ -124,7 +124,7 @@ const controlClass =
                       alt={t.wall.alt}
                       width={900}
                       widths={[320, 480, 640, 900]}
-                      sizes="(min-width: 768px) 440px, (min-width: 640px) 340px, 260px"
+                      sizes="(min-width: 768px) 370px, (min-width: 640px) 290px, 220px"
                       class="h-full w-full object-cover transition-transform duration-700 ease-out-expo motion-safe:group-hover:scale-[1.05]"
                       loading="lazy"
                       decoding="async"
