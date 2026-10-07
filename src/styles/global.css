@@ -59,9 +59,10 @@
     z-index: -1;
     pointer-events: none;
     background:
-      radial-gradient(60% 45% at 50% -8%, rgb(255 255 255 / 0.075), transparent 70%),
-      radial-gradient(40% 35% at 0% 55%, rgb(255 255 255 / 0.035), transparent 70%),
-      radial-gradient(40% 35% at 100% 85%, rgb(255 255 255 / 0.035), transparent 70%);
+      radial-gradient(65% 50% at 50% -8%, rgb(255 255 255 / 0.1), transparent 70%),
+      radial-gradient(45% 40% at 0% 50%, rgb(255 255 255 / 0.055), transparent 70%),
+      radial-gradient(45% 40% at 100% 80%, rgb(255 255 255 / 0.055), transparent 70%),
+      radial-gradient(70% 45% at 50% 110%, rgb(255 255 255 / 0.04), transparent 70%);
   }
 
   ::selection {
