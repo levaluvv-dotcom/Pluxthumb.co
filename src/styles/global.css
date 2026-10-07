@@ -47,8 +47,21 @@
 
   body {
     min-height: 100dvh;
-    background: var(--color-bg);
     overflow-x: clip;
+  }
+
+  /* Еле заметное белое освещение по всему сайту (фон html остаётся #050505).
+     Слой зафиксирован, поэтому «свет» мягко остаётся на месте при прокрутке. */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(60% 45% at 50% -8%, rgb(255 255 255 / 0.075), transparent 70%),
+      radial-gradient(40% 35% at 0% 55%, rgb(255 255 255 / 0.035), transparent 70%),
+      radial-gradient(40% 35% at 100% 85%, rgb(255 255 255 / 0.035), transparent 70%);
   }
 
   ::selection {
