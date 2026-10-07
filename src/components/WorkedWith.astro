@@ -60,14 +60,14 @@ const sets = [false, true] as const;
                 data-marquee-clone={clone ? '' : undefined}
               >
                 {items.map((client) => (
-                  <li class="mr-6 shrink-0 md:mr-10">
+                  <li class="mr-3 shrink-0 md:mr-5">
                     <a
                       href={client.url}
                       target="_blank"
                       rel="noopener noreferrer"
                       tabindex={clone ? -1 : undefined}
                       aria-label={`${client.name} — ${formatSubs(client.subscribers)} ${t.clients.subscribers} (YouTube)`}
-                      class="group flex w-[170px] flex-col items-center text-center md:w-[210px]"
+                      class="group flex w-[160px] flex-col items-center text-center md:w-[190px]"
                     >
                       <span class="block rounded-full border border-line-strong p-1 shadow-[0_0_0_0_rgb(255_255_255/0)] transition-[border-color,box-shadow] duration-500 ease-out-expo group-hover:border-white/60 group-hover:shadow-[0_0_36px_-6px_rgb(255_255_255/0.35)] group-focus-visible:border-white/60 group-focus-visible:shadow-[0_0_36px_-6px_rgb(255_255_255/0.35)]">
                         <span class="isolate block overflow-hidden rounded-full bg-surface-2">

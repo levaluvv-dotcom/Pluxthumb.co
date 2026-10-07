@@ -60,7 +60,7 @@
         "title": "Thumbnail design",
         "features": [
           "1 thumbnail",
-          "24-hour delivery",
+          "Delivery in 24 hours",
           "Unlimited revisions"
         ]
       },
@@ -68,12 +68,12 @@
         "title": "A/B test pack",
         "features": [
           "3 variants for A/B testing",
-          "48-hour delivery",
+          "Delivery in 48 hours",
           "Unlimited revisions"
         ]
       }
     ],
-    "order": "Order now"
+    "order": "Get a Quote"
   },
   "contact": {
     "title": "Contact",
