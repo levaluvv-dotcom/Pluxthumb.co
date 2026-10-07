@@ -90,7 +90,7 @@ if (reduceMotion || !('IntersectionObserver' in window)) {
 }
 
 /* ---------- Счётчики ---------- */
-const formatNumber = (n: number) => n.toLocaleString('en-US');
+const formatNumber = (n: number) => String(n);
 const counters = document.querySelectorAll<HTMLElement>('[data-count]');
 const runCounter = (el: HTMLElement) => {
   const target = Number(el.dataset.count);

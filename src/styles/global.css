@@ -42,6 +42,7 @@
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     scroll-padding-top: var(--header-h);
+    scrollbar-gutter: stable;
   }
 
   body {

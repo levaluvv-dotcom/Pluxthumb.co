@@ -1,0 +1,349 @@
+---
+// Первый экран + «Обо мне»: фото в рамке слева, текст справа (на мобильных — фото сверху).
+// Фон — затемнённый наклонённый коллаж из превью с лёгким параллаксом за курсором.
+import { Image } from 'astro:assets';
+import Icon from './Icon.astro';
+import SocialIcons from './SocialIcons.astro';
+import { useTranslations, type Lang } from '../i18n/utils';
+import { allThumbs, type Thumb } from '../lib/thumbs';
+import maxim from '../assets/about/maxim.jpg';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+// Коллаж: каждое второе превью (~14 шт.), повторённое так, чтобы одинаковые плитки не соседствовали.
+// 36 плиток = 12 рядов по 3 (мобильные) / 9 по 4 (планшет) / 7 по 5 (десктоп, 36-я скрыта).
+const picked: Thumb[] = allThumbs.filter((_, i) => i % 2 === 0).slice(0, 15);
+const TILE_COUNT = 36;
+const shift = Math.max(1, Math.floor(picked.length / 2));
+const tiles: Thumb[] = picked.length
+  ? Array.from({ length: TILE_COUNT }, (_, i) => picked[(i + Math.floor(i / picked.length) * shift) % picked.length])
+  : [];
+
+const formatStat = (n: number) => String(n);
+---
+
+<section id="about" class="hero relative isolate flex items-center overflow-hidden" aria-labelledby="hero-title" data-hero>
+  <!-- Фон: коллаж превью + виньетка -->
+  <div class="hero-bg pointer-events-none absolute inset-x-0 top-0 -z-10 select-none" aria-hidden="true">
+    <div class="hero-parallax absolute inset-0" data-hero-parallax>
+      <div class="hero-collage">
+        {
+          tiles.map((thumb) => (
+            <div class="hero-tile aspect-video overflow-hidden rounded-lg bg-surface-2 sm:rounded-xl lg:rounded-2xl">
+              <Image src={thumb.src} alt="" widths={[320, 480]} sizes="20vw" quality={55} class="size-full object-cover" />
+            </div>
+          ))
+        }
+      </div>
+    </div>
+    <div class="hero-vignette absolute inset-0"></div>
+  </div>
+
+  <div class="container-page">
+    <div
+      class="grid items-center gap-10 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)] lg:gap-14 xl:grid-cols-[minmax(0,460px)_minmax(0,1fr)] xl:gap-16"
+    >
+      <!-- Фото -->
+      <div class="hero-photo" data-reveal="scale">
+        <div class="rounded-[36px] border border-line bg-white/[0.03] p-2.5 shadow-[0_40px_120px_-30px_rgb(0_0_0/0.85)]">
+          <div class="group relative isolate overflow-hidden rounded-[28px] bg-surface-2">
+            <Image
+              src={maxim}
+              alt={t.hero.photoAlt}
+              widths={[360, 540, 720, 920]}
+              sizes="(min-width: 1280px) 440px, (min-width: 1024px) 400px, (min-width: 768px) 360px, 320px"
+              loading="eager"
+              fetchpriority="high"
+              class="aspect-[3/4] w-full object-cover transition-transform duration-[1400ms] ease-out-expo motion-safe:group-hover:scale-[1.03]"
+            />
+            <div class="pointer-events-none absolute inset-0 rounded-[28px] ring-1 ring-white/10 ring-inset" aria-hidden="true">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Текст -->
+      <div class="hero-copy mx-auto flex w-full max-w-[36rem] flex-col items-center text-center lg:mx-0 lg:max-w-none lg:items-start lg:text-left">
+        <p
+          class="inline-flex items-center gap-3 rounded-full border border-line bg-white/[0.04] px-4 py-2 text-[12px] leading-none font-semibold tracking-[0.2em] text-white/80 uppercase"
+          data-reveal
+          style="--reveal-delay: 0ms"
+        >
+          <span class="relative inline-flex size-2 shrink-0" aria-hidden="true">
+            <span class="hero-dot-ring absolute inset-0 rounded-full bg-white"></span>
+            <span class="relative size-2 rounded-full bg-white shadow-[0_0_10px_rgb(255_255_255/0.6)]"></span>
+          </span>
+          <span class="-mr-[0.2em]">{t.hero.badge}</span>
+        </p>
+
+        <h1 id="hero-title" class="mt-6 font-display uppercase" data-reveal style="--reveal-delay: 80ms">
+          <span class:list={['hero-name block leading-[0.92] font-black tracking-[-0.02em]', lang === 'ru' && 'hero-name--ru']}>
+            {t.hero.name}
+          </span>
+          <span class="hero-role mt-3 block leading-[1.08] font-extrabold tracking-[-0.01em] text-balance text-white/90">
+            {t.hero.title}
+          </span>
+        </h1>
+
+        <p
+          class="mt-6 max-w-[34rem] text-[17px] leading-relaxed text-pretty text-muted md:text-lg"
+          data-reveal
+          style="--reveal-delay: 160ms"
+        >
+          {t.hero.text}
+        </p>
+
+        <ul class="hero-stats mt-9 grid w-full max-w-[34rem] grid-cols-3" role="list" data-reveal style="--reveal-delay: 240ms">
+          {
+            t.hero.stats.map((stat, i) => (
+              <li class:list={['px-1 lg:pr-3', i === 0 ? 'lg:pl-0' : 'border-l border-line lg:pl-5']}>
+                <span
+                  class="hero-stat block font-display leading-none font-black tracking-[-0.02em] tabular-nums"
+                  data-count={stat.value}
+                  data-count-suffix={stat.suffix}
+                >
+                  {`${formatStat(stat.value)}${stat.suffix}`}
+                </span>
+                <span class="mt-2.5 block text-[11px] leading-snug font-semibold tracking-[0.16em] text-white/50 uppercase md:text-xs md:tracking-[0.18em]">
+                  {stat.label}
+                </span>
+              </li>
+            ))
+          }
+        </ul>
+
+        <div
+          class="mt-9 flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap sm:justify-center lg:justify-start"
+          data-reveal
+          style="--reveal-delay: 320ms"
+        >
+          <a class="btn btn-primary group w-full sm:w-auto" href="#contact">
+            {t.hero.order}
+            <Icon
+              name="arrow-up-right"
+              size={18}
+              class="transition-transform duration-500 ease-out-expo motion-safe:group-hover:translate-x-0.5 motion-safe:group-hover:-translate-y-0.5"
+            />
+          </a>
+          <a class="btn btn-outline w-full sm:w-auto" href="#examples">{t.hero.work}</a>
+        </div>
+
+        <div class="mt-8" data-reveal style="--reveal-delay: 400ms">
+          <SocialIcons lang={lang} class="justify-center lg:justify-start" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Индикатор прокрутки (декоративный) -->
+  <div class="hero-scroll pointer-events-none absolute bottom-8 left-1/2 -translate-x-1/2" aria-hidden="true">
+    <span class="relative block h-14 w-[5px]">
+      <span class="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-white/15"></span>
+      <span class="hero-scroll-dot absolute top-0 left-1/2 size-[5px] rounded-full bg-white"></span>
+    </span>
+  </div>
+</section>
+
+<style>
+  /* ---------- Секция ---------- */
+  .hero {
+    min-height: 100vh;
+    min-height: 100svh;
+    padding-top: calc(var(--header-h) + 1.5rem);
+    padding-bottom: 4rem;
+  }
+  @media (min-width: 1024px) {
+    .hero {
+      padding-top: calc(var(--header-h) + 3rem);
+      padding-bottom: 6rem;
+    }
+  }
+
+  /* ---------- Фон-коллаж ---------- */
+  /* Фон занимает высоту секции, но не больше экрана: на мобильных под текстом — чистый чёрный */
+  .hero-bg {
+    height: 100%;
+    max-height: max(100vh, 720px);
+    max-height: max(100svh, 720px);
+  }
+  .hero-collage {
+    position: absolute;
+    top: -14%;
+    left: -20%;
+    width: 140%;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    transform: rotate(-8deg);
+    opacity: 0.2;
+    filter: grayscale(0.3);
+  }
+  @media (min-width: 640px) {
+    .hero-collage {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+  }
+  @media (min-width: 1024px) {
+    .hero-collage {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 16px;
+    }
+    /* 5 колонок × 7 рядов — лишняя 36-я плитка не нужна */
+    .hero-tile:nth-child(n + 36) {
+      display: none;
+    }
+  }
+  @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+    .hero-parallax {
+      will-change: transform;
+    }
+  }
+  /* Сверху (под шапкой) и снизу — в цвет фона, по краям — мягкая виньетка */
+  .hero-vignette {
+    background:
+      linear-gradient(180deg, #050505 0%, rgb(5 5 5 / 0) 24%, rgb(5 5 5 / 0) 58%, #050505 100%),
+      radial-gradient(ellipse 75% 70% at 50% 45%, rgb(5 5 5 / 0) 0%, rgb(5 5 5 / 0.5) 60%, #050505 100%);
+  }
+
+  /* ---------- Фото ---------- */
+  .hero-photo {
+    width: 100%;
+    max-width: 340px;
+    margin-inline: auto;
+  }
+  @media (min-width: 768px) {
+    .hero-photo {
+      max-width: 380px;
+    }
+  }
+  @media (min-width: 1024px) {
+    /* На невысоких экранах фото уменьшается, чтобы первый экран помещался целиком */
+    .hero-photo {
+      max-width: max(320px, calc((100vh - var(--header-h) - 11rem) * 0.75));
+      max-width: max(320px, calc((100svh - var(--header-h) - 11rem) * 0.75));
+      margin-inline: auto 0;
+    }
+  }
+
+  /* ---------- Текст: размеры подстраиваются под ширину колонки ---------- */
+  .hero-copy,
+  .hero-stats {
+    container-type: inline-size;
+  }
+  .hero-name {
+    font-size: clamp(3rem, 2rem + 5vw, 6.25rem);
+    font-size: clamp(2.25rem, 16cqi, 6.25rem);
+  }
+  /* «МАКСИМ, 19» заметно шире «MAXIM, 19» */
+  .hero-name--ru {
+    font-size: clamp(2.25rem, 14.6cqi, 6.25rem);
+  }
+  .hero-role {
+    font-size: clamp(1.4rem, 1rem + 1.8vw, 2.6rem);
+    font-size: min(clamp(1.4rem, 1rem + 1.8vw, 2.6rem), 7.4cqi);
+  }
+  .hero-stat {
+    font-size: 2.25rem;
+    font-size: min(3rem, 7.6cqi);
+  }
+
+  /* ---------- Пульсирующая точка в бейдже ---------- */
+  .hero-dot-ring {
+    opacity: 0;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-dot-ring {
+      animation: hero-pulse 2.2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+    }
+  }
+  @keyframes hero-pulse {
+    0% {
+      transform: scale(1);
+      opacity: 0.55;
+    }
+    80%,
+    100% {
+      transform: scale(3);
+      opacity: 0;
+    }
+  }
+
+  /* ---------- Индикатор прокрутки ---------- */
+  .hero-scroll {
+    display: none;
+  }
+  @media (min-width: 1024px) and (min-height: 700px) and (prefers-reduced-motion: no-preference) {
+    .hero-scroll {
+      display: block;
+    }
+  }
+  .hero-scroll-dot {
+    animation: hero-scroll 2.4s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+  }
+  @keyframes hero-scroll {
+    0% {
+      transform: translate3d(-50%, 0, 0);
+      opacity: 0;
+    }
+    15%,
+    65% {
+      opacity: 1;
+    }
+    100% {
+      transform: translate3d(-50%, 51px, 0);
+      opacity: 0;
+    }
+  }
+</style>
+
+<script>
+  // Параллакс коллажа за курсором: до ±14px, плавное догоняние через rAF. Только мышь и без reduced motion.
+  const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const MAX_SHIFT = 14;
+  const EASE = 0.08;
+
+  document.querySelectorAll<HTMLElement>('[data-hero]').forEach((hero) => {
+    const layer = hero.querySelector<HTMLElement>('[data-hero-parallax]');
+    if (!layer) return;
+
+    let targetX = 0;
+    let targetY = 0;
+    let x = 0;
+    let y = 0;
+    let frame = 0;
+
+    const render = () => {
+      x += (targetX - x) * EASE;
+      y += (targetY - y) * EASE;
+      const settled = Math.abs(targetX - x) < 0.02 && Math.abs(targetY - y) < 0.02;
+      if (settled) {
+        x = targetX;
+        y = targetY;
+      }
+      layer.style.transform = x === 0 && y === 0 ? '' : `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0)`;
+      frame = settled ? 0 : requestAnimationFrame(render);
+    };
+    const start = () => {
+      if (!frame) frame = requestAnimationFrame(render);
+    };
+
+    hero.addEventListener('pointermove', (e) => {
+      if (e.pointerType === 'touch' || !finePointer.matches || reducedMotion.matches) return;
+      targetX = (0.5 - e.clientX / window.innerWidth) * 2 * MAX_SHIFT;
+      targetY = (0.5 - e.clientY / window.innerHeight) * 2 * MAX_SHIFT;
+      start();
+    });
+    hero.addEventListener('pointerleave', () => {
+      targetX = 0;
+      targetY = 0;
+      start();
+    });
+  });
+</script>

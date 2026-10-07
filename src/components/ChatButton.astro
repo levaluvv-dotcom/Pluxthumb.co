@@ -1,0 +1,380 @@
+---
+// Плавающая кнопка чата (справа снизу, как у dezzzy.com). По клику открывает панель
+// со способами связи: WhatsApp · Telegram · почта · Discord (копирует ник).
+// Скрыта, пока на экране первый экран (#about) и блок контактов (#contact); на md+ — и у подвала,
+// чтобы не наезжать на кнопку «Наверх». Копирование делает глобальный обработчик [data-copy] из site.ts.
+import Icon from './Icon.astro';
+import type { IconName } from '../lib/icons';
+import contacts from '../data/contacts.json';
+import { useTranslations, type Lang } from '../i18n/utils';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+const panelId = 'chat-panel';
+const titleId = 'chat-panel-title';
+
+interface Row {
+  icon: IconName;
+  name: string;
+  detail: string;
+  /** Ссылка; без неё строка — кнопка копирования */
+  href?: string;
+  external?: boolean;
+  /** Главный способ связи — белая «фишка» */
+  primary?: boolean;
+}
+
+const rows: Row[] = [
+  {
+    icon: 'whatsapp',
+    name: 'WhatsApp',
+    detail: contacts.whatsapp.label,
+    href: contacts.whatsapp.url,
+    external: true,
+    primary: true,
+  },
+  {
+    icon: 'telegram',
+    name: t.contact.telegram,
+    detail: contacts.telegram.label,
+    href: contacts.telegram.url,
+    external: true,
+  },
+  { icon: 'mail', name: t.contact.email, detail: contacts.email.label, href: contacts.email.url },
+  { icon: 'discord', name: t.contact.discord, detail: contacts.discord.label },
+];
+
+const rowClass =
+  'group/row flex h-14 w-full cursor-pointer items-center gap-3 rounded-[14px] px-3 text-left transition-colors duration-300 hover:bg-white/[0.06] focus-visible:bg-white/[0.06] focus-visible:outline-offset-[-2px] active:bg-white/[0.09]';
+const chipBase = 'grid size-9 shrink-0 place-items-center rounded-full transition-colors duration-300';
+const chipPrimary = `${chipBase} bg-white text-black`;
+const chipDefault = `${chipBase} border border-line bg-white/[0.04] text-fg group-hover/row:border-white/25`;
+const nameClass = 'block truncate text-[15px] leading-5 font-semibold text-fg';
+const detailClass = 'block truncate text-[13px] leading-5 text-muted';
+const trailClass =
+  'grid size-8 shrink-0 place-items-center text-dim transition-colors duration-300 group-hover/row:text-fg group-focus-visible/row:text-fg';
+// Иконки «копировать» и «галочка» в одной ячейке сетки — плавно сменяют друг друга (.is-copied ставит site.ts)
+const copyIcon =
+  'col-start-1 row-start-1 transition-[opacity,scale] duration-300 ease-out-expo [.is-copied_&]:scale-50 [.is-copied_&]:opacity-0 motion-reduce:transition-none';
+const checkIcon =
+  'col-start-1 row-start-1 scale-50 text-fg opacity-0 transition-[opacity,scale] duration-500 ease-out-expo [.is-copied_&]:scale-100 [.is-copied_&]:opacity-100 motion-reduce:transition-none';
+---
+
+<div class="chat print:hidden" data-chat>
+  <button
+    type="button"
+    class="relative grid size-14 cursor-pointer place-items-center rounded-full bg-white text-black shadow-[0_14px_34px_-10px_rgb(0_0_0/0.8),0_0_0_1px_rgb(255_255_255/0.12)] transition-[scale,box-shadow] duration-500 ease-out-expo [-webkit-tap-highlight-color:transparent] hover:shadow-[0_0_44px_-6px_rgb(255_255_255/0.5)] motion-safe:hover:scale-[1.06] motion-safe:active:scale-[0.96]"
+    aria-label={t.chat.open}
+    aria-haspopup="dialog"
+    aria-expanded="false"
+    aria-controls={panelId}
+    data-chat-launcher
+  >
+    <span class="chat-ico chat-ico--chat absolute inset-0 grid place-items-center">
+      <Icon name="chat" size={24} />
+    </span>
+    <span class="chat-ico chat-ico--close absolute inset-0 grid place-items-center">
+      <Icon name="close" size={22} />
+    </span>
+  </button>
+
+  <div
+    id={panelId}
+    class="chat-panel absolute right-0 bottom-[68px] max-h-[calc(100dvh_-_var(--header-h)_-_100px)] w-[min(320px,calc(100vw_-_40px))] origin-bottom-right overflow-y-auto overscroll-contain rounded-[22px] border border-line-strong bg-surface-2/95 p-2 shadow-[0_30px_80px_-20px_rgb(0_0_0/0.9)] backdrop-blur-xl"
+    role="dialog"
+    aria-labelledby={titleId}
+    data-chat-panel
+  >
+    <div class="flex items-center justify-between gap-3 pt-1 pr-1 pb-2 pl-3">
+      <div class="min-w-0">
+        <p id={titleId} class="font-display text-[14px] leading-none font-extrabold tracking-[0.08em] uppercase">
+          {t.chat.title}
+        </p>
+        <p class="mt-2 flex items-center gap-2 text-[12px] leading-none text-muted">
+          <span class="size-1.5 shrink-0 rounded-full bg-white" aria-hidden="true"></span>
+          {t.hero.badge}
+        </p>
+      </div>
+      <button
+        type="button"
+        class="grid size-9 shrink-0 cursor-pointer place-items-center rounded-full text-muted transition-colors duration-300 hover:bg-white/[0.06] hover:text-fg"
+        aria-label={t.chat.close}
+        data-chat-close
+      >
+        <Icon name="close" size={18} />
+      </button>
+    </div>
+
+    <div class="mx-3 mb-1 h-px bg-line" aria-hidden="true"></div>
+
+    <ul class="flex flex-col">
+      {
+        rows.map((row) => (
+          <li>
+            {row.href ? (
+              <a
+                href={row.href}
+                class={rowClass}
+                target={row.external ? '_blank' : undefined}
+                rel={row.external ? 'noopener noreferrer' : undefined}
+                data-chat-item
+              >
+                <span class={row.primary ? chipPrimary : chipDefault}>
+                  <Icon name={row.icon} size={18} />
+                </span>
+                <span class="min-w-0 flex-1">
+                  <span class={nameClass}>{row.name}</span>
+                  <span class={detailClass}>{row.detail}</span>
+                </span>
+                <span class={trailClass}>
+                  <Icon name="arrow-up-right" size={16} />
+                </span>
+              </a>
+            ) : (
+              <button
+                type="button"
+                class={rowClass}
+                aria-label={`${row.name}: ${row.detail} (${t.contact.copy})`}
+                data-copy={row.detail}
+                data-copied-label={`${t.contact.copied} ${row.detail}`}
+                data-chat-item
+              >
+                <span class={row.primary ? chipPrimary : chipDefault}>
+                  <Icon name={row.icon} size={18} />
+                </span>
+                <span class="min-w-0 flex-1">
+                  <span class={nameClass}>{row.name}</span>
+                  <span class={detailClass}>{row.detail}</span>
+                </span>
+                <span class={trailClass}>
+                  <span class={copyIcon}>
+                    <Icon name="copy" size={16} />
+                  </span>
+                  <span class={checkIcon}>
+                    <Icon name="check" size={16} />
+                  </span>
+                </span>
+              </button>
+            )}
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</div>
+
+<style>
+  /* Состояния — через data-атрибуты корня: data-shown (кнопка видна), data-open (панель открыта).
+     Стили компонента не в слое, поэтому важные для состояний свойства задаются только здесь. */
+  .chat {
+    --chat-ease: cubic-bezier(0.16, 1, 0.3, 1);
+    position: fixed;
+    z-index: 40;
+    right: calc(1.25rem + env(safe-area-inset-right, 0px));
+    bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+      opacity 0.4s var(--chat-ease),
+      translate 0.4s var(--chat-ease),
+      visibility 0s linear 0.4s;
+  }
+  @media (min-width: 768px) {
+    .chat {
+      right: calc(1.5rem + env(safe-area-inset-right, 0px));
+      bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+    }
+  }
+  .chat[data-shown] {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transition-delay: 0s;
+  }
+
+  .chat-panel {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+      opacity 0.35s var(--chat-ease),
+      translate 0.35s var(--chat-ease),
+      scale 0.35s var(--chat-ease),
+      visibility 0s linear 0.35s;
+  }
+  .chat[data-open] .chat-panel {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transition-delay: 0s;
+  }
+
+  /* Иконка кнопки: «чат» ↔ «крестик» */
+  .chat-ico {
+    transition:
+      opacity 0.3s ease,
+      rotate 0.45s var(--chat-ease),
+      scale 0.45s var(--chat-ease);
+  }
+  .chat-ico--close,
+  .chat[data-open] .chat-ico--chat {
+    opacity: 0;
+  }
+  .chat[data-open] .chat-ico--close {
+    opacity: 1;
+  }
+
+  /* Движение — только если пользователь не просил его убрать */
+  @media (prefers-reduced-motion: no-preference) {
+    .chat {
+      translate: 0 12px;
+    }
+    .chat[data-shown] {
+      translate: 0 0;
+    }
+    .chat-panel {
+      translate: 0 8px;
+      scale: 0.96;
+    }
+    .chat[data-open] .chat-panel {
+      translate: 0 0;
+      scale: 1;
+    }
+    .chat-ico--close {
+      rotate: -90deg;
+      scale: 0.5;
+    }
+    .chat[data-open] .chat-ico--chat {
+      rotate: 90deg;
+      scale: 0.5;
+    }
+    .chat[data-open] .chat-ico--close {
+      rotate: 0deg;
+      scale: 1;
+    }
+  }
+</style>
+
+<script>
+  function initChat(root: HTMLElement, launcher: HTMLButtonElement, panel: HTMLElement) {
+    const items = Array.from(panel.querySelectorAll<HTMLElement>('[data-chat-item]'));
+    const closeBtn = panel.querySelector<HTMLButtonElement>('[data-chat-close]');
+    let open = false;
+    let shown = false;
+    let closeTimer: number | undefined;
+
+    /* ---------- Панель ---------- */
+    const setOpen = (next: boolean, restoreFocus = false) => {
+      window.clearTimeout(closeTimer);
+      if (next === open) return;
+      open = next;
+      root.toggleAttribute('data-open', open);
+      launcher.setAttribute('aria-expanded', String(open));
+      if (open) {
+        // Своя прокрутка панели (низкие экраны) — только если содержимое не влезает, иначе колесо крутит страницу через Lenis
+        panel.toggleAttribute('data-lenis-prevent', panel.scrollHeight > panel.clientHeight + 1);
+        items[0]?.focus({ preventScroll: true });
+      } else if (restoreFocus && shown) {
+        launcher.focus({ preventScroll: true });
+      }
+    };
+
+    launcher.addEventListener('click', () => setOpen(!open, true));
+    closeBtn?.addEventListener('click', () => setOpen(false, true));
+
+    for (const item of items) {
+      item.addEventListener('click', () => {
+        if (item.hasAttribute('data-copy')) {
+          // Дать увидеть галочку «скопировано», потом закрыть
+          window.clearTimeout(closeTimer);
+          closeTimer = window.setTimeout(() => setOpen(false, true), 900);
+        } else {
+          setOpen(false, true);
+        }
+      });
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (!open) return;
+      if (e.key === 'Escape') {
+        setOpen(false, true);
+        return;
+      }
+      if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && root.contains(document.activeElement) && items.length) {
+        e.preventDefault();
+        const down = e.key === 'ArrowDown';
+        const i = items.findIndex((el) => el === document.activeElement);
+        const nextIndex = i < 0 ? (down ? 0 : items.length - 1) : (i + (down ? 1 : -1) + items.length) % items.length;
+        items[nextIndex]?.focus();
+      }
+    });
+
+    // Клик мимо — закрыть, фокус не перехватываем
+    document.addEventListener('pointerdown', (e) => {
+      if (open && e.target instanceof Node && !root.contains(e.target)) setOpen(false);
+    });
+
+    // Фокус ушёл из виджета (Tab дальше) — закрыть
+    root.addEventListener('focusout', (e) => {
+      const next = e.relatedTarget;
+      if (open && next instanceof Node && !root.contains(next)) setOpen(false);
+    });
+
+    /* ---------- Видимость кнопки ---------- */
+    const setShown = (next: boolean) => {
+      if (next === shown) return;
+      shown = next;
+      root.toggleAttribute('data-shown', shown);
+      if (!shown) {
+        setOpen(false);
+        const active = document.activeElement;
+        if (active instanceof HTMLElement && root.contains(active)) active.blur();
+      }
+    };
+
+    const heroAnchor = document.getElementById('about');
+    const hero = heroAnchor?.closest('section') ?? heroAnchor;
+    const contactAnchor = document.getElementById('contact');
+    const contact = contactAnchor?.closest('section') ?? contactAnchor;
+    const footer = document.querySelector<HTMLElement>('body > footer');
+    const mdUp = window.matchMedia('(min-width: 768px)');
+
+    let ticking = false;
+    const update = () => {
+      ticking = false;
+      const vh = window.innerHeight;
+      // Первый экран почти ушёл: прокрутили больше 60% высоты окна и низ hero выше середины экрана
+      const pastHero = window.scrollY > vh * 0.6 && (!hero || hero.getBoundingClientRect().bottom < vh * 0.5);
+      let covered = false;
+      if (contact) {
+        // Блок контактов занимает середину экрана — там и так все способы связи
+        const r = contact.getBoundingClientRect();
+        covered = r.top < vh * 0.7 && r.bottom > vh * 0.3;
+      }
+      // На md+ подвал (кнопка «Наверх») стоит ровно под плавающей кнопкой
+      if (!covered && footer && mdUp.matches) covered = footer.getBoundingClientRect().top < vh - 56;
+      setShown(pastHero && !covered);
+    };
+    const requestUpdate = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(update);
+    };
+
+    window.addEventListener('scroll', requestUpdate, { passive: true });
+    window.addEventListener('resize', requestUpdate, { passive: true });
+    window.addEventListener('load', requestUpdate);
+    update();
+  }
+
+  const root = document.querySelector<HTMLElement>('[data-chat]');
+  const launcher = root?.querySelector<HTMLButtonElement>('[data-chat-launcher]');
+  const panel = root?.querySelector<HTMLElement>('[data-chat-panel]');
+  if (root && launcher && panel) initChat(root, launcher, panel);
+</script>

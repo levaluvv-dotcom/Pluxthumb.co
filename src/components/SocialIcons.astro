@@ -1,6 +1,7 @@
 ---
 // Ряд иконок соцсетей (X · Instagram · Behance · Telegram · Discord). Discord копирует ник.
-import Icon, { type IconName } from './Icon.astro';
+import Icon from './Icon.astro';
+import type { IconName } from '../lib/icons';
 import socials from '../data/socials.json';
 import { useTranslations, type Lang } from '../i18n/utils';
 
@@ -13,7 +14,7 @@ const { lang, size = 'md', class: className } = Astro.props;
 const t = useTranslations(lang);
 const box = size === 'md' ? 'size-11' : 'size-10';
 const icon = size === 'md' ? 18 : 16;
-const itemClass = `group inline-flex ${box} items-center justify-center rounded-full border border-line bg-white/[0.03] text-muted transition-[color,border-color,background-color,transform] duration-300 hover:-translate-y-0.5 hover:border-white/40 hover:bg-white/[0.08] hover:text-white`;
+const itemClass = `group inline-flex ${box} items-center justify-center rounded-full border border-line bg-white/[0.03] text-muted transition-[color,border-color,background-color,translate] duration-300 hover:-translate-y-0.5 hover:border-white/40 hover:bg-white/[0.08] hover:text-white`;
 ---
 
 <ul class:list={['flex items-center gap-2.5', className]}>
