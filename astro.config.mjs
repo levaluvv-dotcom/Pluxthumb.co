@@ -3,11 +3,9 @@ import { defineConfig } from 'astro/config';
 import tailwindcss from '@tailwindcss/vite';
 import sitemap from '@astrojs/sitemap';
 
-// GitHub Pages: https://levaluvv-dotcom.github.io/Pluxthumb.co/
-// При подключении своего домена: site → 'https://<домен>', base убрать, добавить public/CNAME.
+// GitHub Pages со своим доменом (файл public/CNAME): https://pluxthumb.space/
 export default defineConfig({
-  site: 'https://levaluvv-dotcom.github.io',
-  base: '/Pluxthumb.co',
+  site: 'https://pluxthumb.space',
   trailingSlash: 'ignore',
   i18n: {
     defaultLocale: 'en',

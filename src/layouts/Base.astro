@@ -9,7 +9,7 @@ interface Props {
 
 const { lang, noindex = false } = Astro.props;
 const t = useTranslations(lang);
-const site = Astro.site ?? new URL('https://levaluvv-dotcom.github.io');
+const site = Astro.site ?? new URL('https://pluxthumb.space');
 const canonical = new URL(localePath(lang), site).href;
 const alternates = (['en', 'ru'] as const).map((l) => ({ lang: l, href: new URL(localePath(l), site).href }));
 const ogImage = new URL(asset('og.jpg'), site).href;
