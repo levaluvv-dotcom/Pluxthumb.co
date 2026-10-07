@@ -109,7 +109,7 @@ const formatStat = (n: number) => String(n);
                 >
                   {`${formatStat(stat.value)}${stat.suffix}`}
                 </span>
-                <span class="mt-2.5 block text-[11px] leading-snug font-semibold tracking-[0.16em] text-white/50 uppercase md:text-xs md:tracking-[0.18em]">
+                <span class="mt-2.5 block text-[11px] leading-snug font-semibold tracking-[0.16em] text-white/50 uppercase md:text-xs md:tracking-[0.18em] lg:whitespace-nowrap">
                   {stat.label}
                 </span>
               </li>
@@ -166,10 +166,12 @@ const formatStat = (n: number) => String(n);
 
   /* ---------- Фон-коллаж ---------- */
   /* Фон занимает высоту секции, но не больше экрана: на мобильных под текстом — чистый чёрный */
+  /* overflow: hidden — повёрнутый коллаж длиннее фона; без обрезки он вылезает ниже виньетки жёстким швом */
   .hero-bg {
     height: 100%;
     max-height: max(100vh, 720px);
     max-height: max(100svh, 720px);
+    overflow: hidden;
   }
   .hero-collage {
     position: absolute;
@@ -209,6 +211,15 @@ const formatStat = (n: number) => String(n);
     background:
       linear-gradient(180deg, #050505 0%, rgb(5 5 5 / 0) 24%, rgb(5 5 5 / 0) 58%, #050505 100%),
       radial-gradient(ellipse 75% 70% at 50% 45%, rgb(5 5 5 / 0) 0%, rgb(5 5 5 / 0.5) 60%, #050505 100%);
+  }
+  /* Десктоп: дополнительно притемняем коллаж за колонкой текста (справа от фото), чтобы он не спорил с текстом */
+  @media (min-width: 1024px) {
+    .hero-vignette {
+      background:
+        linear-gradient(180deg, #050505 0%, rgb(5 5 5 / 0) 24%, rgb(5 5 5 / 0) 58%, #050505 100%),
+        linear-gradient(90deg, rgb(5 5 5 / 0) 38%, rgb(5 5 5 / 0.6) 50%, rgb(5 5 5 / 0.6) 82%, rgb(5 5 5 / 0.25) 100%),
+        radial-gradient(ellipse 75% 70% at 50% 45%, rgb(5 5 5 / 0) 0%, rgb(5 5 5 / 0.5) 60%, #050505 100%);
+    }
   }
 
   /* ---------- Фото ---------- */
@@ -278,7 +289,8 @@ const formatStat = (n: number) => String(n);
   .hero-scroll {
     display: none;
   }
-  @media (min-width: 1024px) and (min-height: 700px) and (prefers-reduced-motion: no-preference) {
+  /* Только на высоких экранах: на 1366×768 / 1280×720 индикатор прилипает к соцсетям и уходит за сгиб */
+  @media (min-width: 1024px) and (min-height: 860px) and (prefers-reduced-motion: no-preference) {
     .hero-scroll {
       display: block;
     }

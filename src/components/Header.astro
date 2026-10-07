@@ -1,7 +1,7 @@
 ---
 // Шапка: текстовый логотип, навигация с «таблеткой» под активной секцией, переключатель языка, кнопка заказа.
-// На узких экранах (<768px) — полноэкранное меню-диалог с крупными ссылками.
-// Навигация по центру видна с md, кнопка «Заказать» — с lg (на md ей не хватает места рядом с меню).
+// До lg (<1024px) — полноэкранное меню-диалог с крупными ссылками.
+// Кнопка «Заказать» видна с md, навигация по центру — с lg (на планшете ей не хватает места рядом с переключателем и кнопкой, там она живёт в меню).
 import Icon from './Icon.astro';
 import SocialIcons from './SocialIcons.astro';
 import { useTranslations, localePath, languages, type Lang } from '../i18n/utils';
@@ -33,11 +33,11 @@ const langLinkBase =
   <div class="header-bg pointer-events-none absolute inset-0" aria-hidden="true"></div>
 
   <div
-    class="header-bar container-page relative flex h-full items-center justify-between gap-4 md:grid md:grid-cols-[1fr_auto_1fr]"
+    class="header-bar container-page relative flex h-full items-center justify-between gap-4 lg:grid lg:grid-cols-[1fr_auto_1fr]"
   >
     <a href="#top" class:list={[logoClass, 'justify-self-start py-2']}>Plux Design</a>
 
-    <nav class="relative hidden justify-self-center md:block" aria-label={t.nav.menu} data-nav>
+    <nav class="relative hidden justify-self-center lg:block" aria-label={t.nav.menu} data-nav>
       <span
         class="pointer-events-none absolute top-0 left-0 h-full w-0 rounded-full bg-white/[0.08] opacity-0 shadow-[inset_0_0_0_1px_rgb(255_255_255/0.06)] transition-[transform,width,opacity] duration-500 ease-out-expo motion-reduce:transition-none"
         aria-hidden="true"
@@ -48,7 +48,7 @@ const langLinkBase =
             <li>
               <a
                 href={`#${l.id}`}
-                class="relative inline-flex items-center rounded-full px-4 py-2 text-sm font-medium text-muted transition-colors duration-300 hover:text-white aria-[current=true]:text-white"
+                class="relative inline-flex items-center rounded-full px-4 py-2 text-sm font-medium text-muted transition-colors duration-300 before:absolute before:inset-x-0 before:-inset-y-1 hover:text-white aria-[current=true]:text-white"
                 data-nav-link={l.id}
               >
                 {l.label}
@@ -70,7 +70,7 @@ const langLinkBase =
               aria-current={l === lang ? 'page' : undefined}
               class:list={[
                 langLinkBase,
-                'h-8 min-w-10 px-2.5 text-xs',
+                'relative h-8 min-w-10 px-2.5 text-xs before:absolute before:inset-x-0 before:-inset-y-1.5',
                 l === lang ? 'bg-white/10 text-white' : 'text-muted hover:text-white',
               ]}
               data-lang-link
@@ -81,11 +81,11 @@ const langLinkBase =
         }
       </div>
 
-      <a class="btn btn-primary btn-sm hidden lg:inline-flex" href="#contact">{t.nav.order}</a>
+      <a class="btn btn-primary btn-sm hidden md:inline-flex" href="#contact">{t.nav.order}</a>
 
       <button
         type="button"
-        class:list={[roundBtnClass, 'md:hidden']}
+        class:list={[roundBtnClass, 'lg:hidden']}
         aria-label={t.nav.menu}
         aria-expanded="false"
         aria-controls="site-menu"
@@ -100,7 +100,7 @@ const langLinkBase =
 
 <div
   id="site-menu"
-  class="menu fixed inset-0 z-[90] md:hidden"
+  class="menu fixed inset-0 z-[90] lg:hidden"
   role="dialog"
   aria-modal="true"
   aria-label={t.nav.menu}
@@ -158,7 +158,7 @@ const langLinkBase =
                   aria-current={l === lang ? 'page' : undefined}
                   class:list={[
                     langLinkBase,
-                    'h-10 min-w-12 px-3 text-[13px]',
+                    'h-11 min-w-12 px-3 text-[13px]',
                     l === lang ? 'bg-white/10 text-white' : 'text-muted hover:text-white',
                   ]}
                   data-lang-link
@@ -188,9 +188,9 @@ const langLinkBase =
   }
   .site-header.is-scrolled .header-bg {
     border-bottom-color: var(--color-line, rgb(255 255 255 / 0.08));
-    background-color: rgb(5 5 5 / 0.7);
-    -webkit-backdrop-filter: blur(12px);
-    backdrop-filter: blur(12px);
+    background-color: rgb(5 5 5 / 0.85);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+    backdrop-filter: blur(20px) saturate(140%);
   }
 
   /* Появление шапки при загрузке */
@@ -320,27 +320,36 @@ const langLinkBase =
     placePill();
   };
 
-  const inView = new Set<string>();
+  // Секции без своего пункта меню подсвечивают ближайший: Worked with → Examples, FAQ → Contact
+  const aliases: Record<string, string> = { clients: 'examples', faq: 'contact' };
+  const inView = new Set<Element>();
+  const targets = new Map<Element, string>();
   let holdUntil = 0;
   let holdTimer: number | undefined;
   const pickActive = () => {
     if (performance.now() < holdUntil) return;
-    setActive(navIds.find((id) => inView.has(id)) ?? null);
+    let found: string | null = null;
+    targets.forEach((id, el) => {
+      if (!found && inView.has(el)) found = id;
+    });
+    setActive(found);
   };
 
   if (navLinks.length > 0 && 'IntersectionObserver' in window) {
-    const targets = new Map<Element, string>();
-    for (const id of navIds) {
-      const el = document.getElementById(id);
-      if (el) targets.set(el.closest('section') ?? el, id);
-    }
+    // Порядок вставки = порядок секций на странице
+    const ids = [...navIds, ...Object.keys(aliases)];
+    const found = ids
+      .map((id) => ({ id: aliases[id] ?? id, el: document.getElementById(id) }))
+      .filter((x): x is { id: string; el: HTMLElement } => !!x.el && navIds.includes(x.id))
+      .map((x) => ({ id: x.id, el: x.el.closest('section') ?? x.el }))
+      .sort((a, b) => (a.el.compareDocumentPosition(b.el) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1));
+    for (const x of found) targets.set(x.el, x.id);
     const io = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
-          const id = targets.get(entry.target);
-          if (!id) continue;
-          if (entry.isIntersecting) inView.add(id);
-          else inView.delete(id);
+          if (!targets.has(entry.target)) continue;
+          if (entry.isIntersecting) inView.add(entry.target);
+          else inView.delete(entry.target);
         }
         pickActive();
       },
@@ -454,7 +463,7 @@ const langLinkBase =
     });
 
     // Расширили окно до планшета/десктопа — меню больше не нужно
-    window.matchMedia('(min-width: 768px)').addEventListener('change', (e) => {
+    window.matchMedia('(min-width: 1024px)').addEventListener('change', (e) => {
       if (e.matches) closeMenu(false);
     });
     // Вернулись «Назад» из кеша страницы — меню закрыто, прокрутка разблокирована

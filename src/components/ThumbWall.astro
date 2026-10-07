@@ -1,6 +1,6 @@
 ---
 // Стена работ (#examples): три бесконечные ленты превью + лайтбокс на нативном <dialog>.
-// Каждая плитка — кнопка: открывает крупную версию (1920×1080 webp, готовится при сборке).
+// Каждая плитка — кнопка: открывает крупную версию (webp 1280 или 1920 px, готовятся при сборке).
 // В лайтбоксе: стрелки ←/→, свайп, Esc / клик по фону — закрыть, счётчик «07 / 27».
 import { Image, getImage } from 'astro:assets';
 import Icon from './Icon.astro';
@@ -20,19 +20,16 @@ const offsets = rows.map((_, r) => rows.slice(0, r).reduce((sum, row) => sum + r
 const flat = rows.flat();
 const total = flat.length;
 
-// Крупные версии для лайтбокса: 16:9 (thumb-24 обрезается по центру, как на стене), webp
+// Крупные версии для лайтбокса: 16:9 (thumb-24 обрезается по центру, как на стене), webp.
+// Две ширины: 1280 — телефонам и небольшим экранам (рамка ≤ 1280 физ. px), 1920 — остальным.
 const large = await Promise.all(
   flat.map(async (thumb) => {
-    const img = await getImage({
-      src: thumb.src,
-      width: 1920,
-      height: 1080,
-      fit: 'cover',
-      format: 'webp',
-      quality: 85,
-    });
+    const make = (width: number, height: number) =>
+      getImage({ src: thumb.src, width, height, fit: 'cover', format: 'webp', quality: 85 });
+    const [img, sm] = await Promise.all([make(1920, 1080), make(1280, 720)]);
     return {
       src: img.src,
+      srcSm: sm.src,
       width: Number(img.attributes.width) || 1920,
       height: Number(img.attributes.height) || 1080,
     };
@@ -62,11 +59,38 @@ const controlClass =
   'grid size-12 cursor-pointer place-items-center rounded-full border border-white/15 bg-white/[0.06] text-white transition-[background-color,border-color,scale] duration-300 ease-out-quart hover:border-white/40 hover:bg-white/[0.12] active:scale-95';
 ---
 
-<section id="examples" data-thumbwall aria-label={t.nav.examples} class="relative overflow-x-clip py-16 md:py-24">
-  <div class="container-page mb-10 flex items-center justify-center gap-4 md:mb-14" data-reveal>
-    <span class="h-px w-8 shrink-0 bg-linear-to-r from-transparent to-white/30 md:w-14" aria-hidden="true"></span>
-    <p class="eyebrow -mr-[0.24em] text-center">{t.wall.trusted}</p>
-    <span class="h-px w-8 shrink-0 bg-linear-to-l from-transparent to-white/30 md:w-14" aria-hidden="true"></span>
+<section id="examples" data-thumbwall aria-labelledby="examples-title" class="relative overflow-x-clip py-16 md:py-24">
+  <h2 id="examples-title" class="sr-only">{t.nav.examples}</h2>
+
+  {/* Подпись по центру; у правого края — тихая кнопка «пауза» для всех лент (логика в site.ts,
+      нужна на тач-устройствах, где нет наведения). На телефоне боковые штрихи убираем, а px-9
+      у подписи держит место под кнопку (узкий экран — перенос, а не наезд). При reduced motion
+      кнопки нет — штрихи и обычная ширина подписи возвращаются. */}
+  <div class="container-page mb-10 md:mb-14" data-reveal>
+    <div class="relative flex items-center justify-center gap-4">
+      <span
+        class="hidden h-px w-8 shrink-0 bg-linear-to-r from-transparent to-white/30 sm:block md:w-14 motion-reduce:block"
+        aria-hidden="true"></span>
+      <p class="eyebrow -mr-[0.24em] px-9 text-center max-sm:text-[11px] max-sm:tracking-[0.16em] sm:px-0 motion-reduce:px-0">{t.wall.trusted}</p>
+      <span
+        class="hidden h-px w-8 shrink-0 bg-linear-to-l from-transparent to-white/30 sm:block md:w-14 motion-reduce:block"
+        aria-hidden="true"></span>
+      <button
+        type="button"
+        data-marquee-toggle
+        aria-pressed="false"
+        aria-label={t.wall.pause}
+        class="group absolute top-1/2 right-0 grid size-8 -translate-y-1/2 cursor-pointer place-items-center rounded-full border border-line text-muted transition-[color,border-color,background-color] duration-300 ease-out-quart hover:border-white/30 hover:bg-white/[0.04] hover:text-fg aria-pressed:border-white/30 aria-pressed:text-fg md:size-9"
+      >
+        <svg class="group-aria-pressed:hidden" width="10" height="10" viewBox="0 0 10 10" fill="currentColor" aria-hidden="true">
+          <rect x="2" y="1.5" width="2" height="7" rx="0.5"></rect>
+          <rect x="6" y="1.5" width="2" height="7" rx="0.5"></rect>
+        </svg>
+        <svg class="hidden group-aria-pressed:block" width="10" height="10" viewBox="0 0 10 10" fill="currentColor" aria-hidden="true">
+          <path d="M3 1.5v7L8.5 5z"></path>
+        </svg>
+      </button>
+    </div>
   </div>
 
   {/* py-1.5 у каждого ряда — место под обводку фокуса (иначе её срежет overflow-hidden);
@@ -101,8 +125,8 @@ const controlClass =
                       width={900}
                       widths={[320, 480, 640, 900]}
                       sizes="(min-width: 768px) 440px, (min-width: 640px) 340px, 260px"
-                      class="h-full w-full object-cover transition-transform duration-700 ease-out-expo group-hover:scale-[1.05]"
-                      loading={r === 0 ? 'eager' : 'lazy'}
+                      class="h-full w-full object-cover transition-transform duration-700 ease-out-expo motion-safe:group-hover:scale-[1.05]"
+                      loading="lazy"
                       decoding="async"
                       draggable="false"
                     />
@@ -131,7 +155,10 @@ const controlClass =
       <button
         type="button"
         data-lb-action="close"
-        class:list={[controlClass, 'absolute right-4 top-[max(1rem,env(safe-area-inset-top))] md:right-6 md:top-6']}
+        class:list={[
+          controlClass,
+          'absolute top-[max(1rem,env(safe-area-inset-top))] right-[max(1rem,env(safe-area-inset-right))] md:top-[max(1.5rem,env(safe-area-inset-top))] md:right-[max(1.5rem,env(safe-area-inset-right))]',
+        ]}
         aria-label={t.wall.close}
       >
         <Icon name="close" size={20} />
@@ -149,7 +176,7 @@ const controlClass =
         data-lb-action="prev"
         class:list={[
           controlClass,
-          'absolute bottom-[max(1.25rem,env(safe-area-inset-bottom))] left-4 md:bottom-auto md:left-6 md:top-1/2 md:-translate-y-1/2',
+          'absolute bottom-[max(1.25rem,env(safe-area-inset-bottom))] left-[max(1rem,env(safe-area-inset-left))] md:top-1/2 md:bottom-auto md:left-[max(1.5rem,env(safe-area-inset-left))] md:-translate-y-1/2',
         ]}
         aria-label={t.wall.prev}
       >
@@ -160,7 +187,7 @@ const controlClass =
         data-lb-action="next"
         class:list={[
           controlClass,
-          'absolute bottom-[max(1.25rem,env(safe-area-inset-bottom))] right-4 md:bottom-auto md:right-6 md:top-1/2 md:-translate-y-1/2',
+          'absolute right-[max(1rem,env(safe-area-inset-right))] bottom-[max(1.25rem,env(safe-area-inset-bottom))] md:top-1/2 md:right-[max(1.5rem,env(safe-area-inset-right))] md:bottom-auto md:-translate-y-1/2',
         ]}
         aria-label={t.wall.next}
       >
@@ -239,8 +266,8 @@ const controlClass =
 </style>
 
 <script>
-  type LightboxItem = { src: string; width: number; height: number };
-  type Preloaded = { img: HTMLImageElement; done: boolean; ready: Promise<void> };
+  type LightboxItem = { src: string; srcSm?: string; width: number; height: number };
+  type Preloaded = { src: string; img: HTMLImageElement; done: boolean; ready: Promise<void> };
   type Direction = -1 | 0 | 1;
 
   const EASE_OUT_EXPO = 'cubic-bezier(0.16, 1, 0.3, 1)';
@@ -271,7 +298,6 @@ const controlClass =
     const count = items.length;
     if (!count) return;
 
-    const roots = Array.from(section.querySelectorAll<HTMLElement>('[data-marquee]'));
     const wrap = (i: number) => ((i % count) + count) % count;
 
     let index = 0;
@@ -281,19 +307,29 @@ const controlClass =
     let closeTimer = 0;
     let pauseTimer = 0;
     let opener: HTMLButtonElement | null = null;
-    let savedScroll: number[] = [];
+    let openerKb = false; // лайтбокс открыт с клавиатуры — при закрытии вернуть фокус на плитку
     let navAnim: Animation | null = null;
 
+    // Режим экономии трафика: заранее грузим только следующую картинку
+    const saveData =
+      (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData === true;
+
     /* ---------- Предзагрузка крупных версий ---------- */
+    // Файл по реальной ширине рамки в физических пикселях (диалог уже открыт — рамка свёрстана)
+    const srcFor = (item: LightboxItem) =>
+      item.srcSm && (frame.clientWidth || window.innerWidth) * (window.devicePixelRatio || 1) <= 1280
+        ? item.srcSm
+        : item.src;
+
     const cache = new Map<string, Preloaded>();
     const preload = (i: number): Preloaded => {
-      const { src } = items[wrap(i)];
+      const src = srcFor(items[wrap(i)]);
       const cached = cache.get(src);
       if (cached) return cached;
       const el = new Image();
       el.decoding = 'async';
       el.src = src;
-      const entry: Preloaded = { img: el, done: false, ready: Promise.resolve() };
+      const entry: Preloaded = { src, img: el, done: false, ready: Promise.resolve() };
       entry.ready = el.decode().then(
         () => {
           entry.done = true;
@@ -321,7 +357,7 @@ const controlClass =
       frame.style.setProperty('--ar', String(item.width / item.height));
 
       const entry = preload(index);
-      const instant = entry.done ? item.src : placeholder(index);
+      const instant = entry.done ? entry.src : placeholder(index);
       if (instant) {
         img.src = instant;
         img.hidden = false;
@@ -333,7 +369,7 @@ const controlClass =
         void entry.ready.then(() => {
           if (id !== token) return;
           const reveal = img.hidden;
-          img.src = item.src;
+          img.src = entry.src;
           img.hidden = false;
           if (reveal && !prefersReducedMotion()) {
             img.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 400, easing: EASE_OUT_EXPO });
@@ -353,7 +389,7 @@ const controlClass =
       }
 
       preload(index + 1);
-      preload(index - 1);
+      if (!saveData) preload(index - 1);
     };
 
     // Ленты под фоном останавливаем, когда лайтбокс уже открылся, и запускаем в начале закрытия
@@ -369,9 +405,12 @@ const controlClass =
     };
 
     /* ---------- Открытие / закрытие ---------- */
-    const openAt = (i: number, from: HTMLButtonElement) => {
+    const openAt = (i: number, from: HTMLButtonElement, kb: boolean) => {
       if (isOpen) return;
-      savedScroll = roots.map((root) => root.scrollLeft);
+      // Открыли мышью/тачем — снимаем фокус с плитки сразу: иначе диалог вернёт его при закрытии,
+      // после Esc он станет «видимым», и site.ts остановит ленту до следующего клика.
+      openerKb = kb && !from.closest('[data-marquee-clone]');
+      if (!openerKb && document.activeElement === from) from.blur();
       try {
         dialog.showModal();
       } catch {
@@ -412,29 +451,19 @@ const controlClass =
       navAnim = null;
       document.dispatchEvent(new Event('scroll:unlock'));
 
-      // Фокус — обратно на плитку, с которой открыли (у дубля ленты — никуда).
-      // Если фокус «невидимый» (закрыли мышью/тачем) — снимаем его: site.ts останавливает
-      // ленту на focusin, и без этого ряд замер бы до следующего клика.
+      // Открыли с клавиатуры — фокус обратно на плитку (лента стоит, пока он на ней).
+      // Открыли мышью/тачем — фокус не оставляем ни на плитке (ряд замер бы до следующего клика),
+      // ни на кнопке внутри уже скрытого диалога.
       const from = opener;
+      const kb = openerKb;
       opener = null;
-      if (from && from.isConnected) {
-        if (from.closest('[data-marquee-clone]')) {
-          if (document.activeElement === from) from.blur();
-        } else {
-          from.focus({ preventScroll: true });
-          let visible = true;
-          try {
-            visible = from.matches(':focus-visible');
-          } catch {
-            /* браузер без :focus-visible — оставляем фокус */
-          }
-          if (!visible) from.blur();
-        }
+      openerKb = false;
+      if (kb && from && from.isConnected) {
+        from.focus({ preventScroll: true });
+      } else {
+        const active = document.activeElement;
+        if (active instanceof HTMLElement && (active === from || dialog.contains(active))) active.blur();
       }
-      // Возврат фокуса мог прокрутить ленту (overflow-hidden) — вернуть как было
-      roots.forEach((root, i) => {
-        root.scrollLeft = savedScroll[i] ?? 0;
-      });
     });
 
     // Esc: вместо мгновенного закрытия — плавное
@@ -477,6 +506,12 @@ const controlClass =
       pointerId = null;
     });
 
+    // Где началось нажатие: если на картинке, а отпустили на фоне (перетаскивание) — не закрывать
+    let downOnFrame = false;
+    dialog.addEventListener('pointerdown', (e) => {
+      downOnFrame = e.target instanceof Element && !!e.target.closest('[data-lb-frame], [data-lb-action]');
+    });
+
     // Кнопки + клик по фону (мимо картинки и кнопок) закрывает
     dialog.addEventListener('click', (e) => {
       if (performance.now() - swipedAt < 400) return; // клик, которым закончился свайп
@@ -484,7 +519,7 @@ const controlClass =
       const action = target?.closest<HTMLElement>('[data-lb-action]')?.dataset.lbAction;
       if (action === 'prev') show(index - 1, -1);
       else if (action === 'next') show(index + 1, 1);
-      else if (action === 'close' || !target?.closest('[data-lb-frame]')) requestClose();
+      else if (action === 'close' || (!target?.closest('[data-lb-frame]') && !downOnFrame)) requestClose();
     });
 
     // Клик по плитке на стене (оригинал или дубль ленты)
@@ -493,12 +528,24 @@ const controlClass =
       const btn = target?.closest<HTMLButtonElement>('button[data-index]');
       if (!btn || dialog.contains(btn)) return;
       const i = Number(btn.dataset.index);
-      if (Number.isInteger(i)) openAt(i, btn);
+      if (!Number.isInteger(i)) return;
+      // Enter/Пробел (или вспомогательная технология) дают клик с detail 0;
+      // уже стоящий на плитке «видимый» фокус — тоже клавиатура.
+      let kb = e.detail === 0;
+      if (!kb) {
+        try {
+          kb = btn.matches(':focus-visible');
+        } catch {
+          /* браузер без :focus-visible — считаем, что открыли мышью */
+        }
+      }
+      openAt(i, btn, kb);
     });
 
     /* ---------- Ленивые ряды ---------- */
-    // Ряды 2–3 грузятся лениво; когда стена близко — догружаем их целиком, чтобы плитки,
-    // скрытые за краем ленты, не «проявлялись» уже на виду.
+    // Все ряды грузятся лениво (стена ниже первого экрана и не должна отнимать канал у фото в hero);
+    // когда стена близко — догружаем их целиком, чтобы плитки, скрытые за краем ленты,
+    // не «проявлялись» уже на виду.
     const lazyImgs = section.querySelectorAll<HTMLImageElement>('img[loading="lazy"]');
     if (lazyImgs.length && 'IntersectionObserver' in window) {
       const io = new IntersectionObserver(

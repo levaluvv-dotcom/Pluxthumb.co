@@ -13,6 +13,17 @@ interface Props {
 const { lang } = Astro.props;
 const t = useTranslations(lang);
 
+// RU: «4.2M» → «4,2 млн», «710K» → «710 тыс.» (как на русском YouTube); число и единица — через неразрывный пробел.
+// EN выводится как есть.
+const ruUnits: Record<string, string> = { K: 'тыс.', M: 'млн', B: 'млрд' };
+const formatSubs = (value: string): string =>
+  lang === 'ru'
+    ? value.replace(
+        /^(\d+(?:\.\d+)?)([KMB])$/,
+        (_match: string, num: string, unit: string) => `${num.replace('.', ',')}\u00A0${ruUnits[unit] ?? unit}`,
+      )
+    : value;
+
 const avatarModules = import.meta.glob<{ default: ImageMetadata }>('../assets/clients/*.{jpg,png,webp}', {
   eager: true,
 });
@@ -31,7 +42,7 @@ const sets = [false, true] as const;
 // Отступы py-8 / -my-8 у ленты дают место свечению и кольцу внутри overflow-hidden, не меняя ритм секции.
 ---
 
-<section id="clients" class="py-24 md:py-32" aria-labelledby="clients-title">
+<section id="clients" class="py-16 sm:py-24 md:py-32" aria-labelledby="clients-title">
   <div class="container-page">
     <SectionTitle id="clients-title">{t.clients.title}</SectionTitle>
   </div>
@@ -55,7 +66,7 @@ const sets = [false, true] as const;
                       target="_blank"
                       rel="noopener noreferrer"
                       tabindex={clone ? -1 : undefined}
-                      aria-label={`${client.name} — ${client.subscribers} ${t.clients.subscribers} (YouTube)`}
+                      aria-label={`${client.name} — ${formatSubs(client.subscribers)} ${t.clients.subscribers} (YouTube)`}
                       class="group flex w-[170px] flex-col items-center text-center md:w-[210px]"
                     >
                       <span class="block rounded-full border border-line-strong p-1 shadow-[0_0_0_0_rgb(255_255_255/0)] transition-[border-color,box-shadow] duration-500 ease-out-expo group-hover:border-white/60 group-hover:shadow-[0_0_36px_-6px_rgb(255_255_255/0.35)] group-focus-visible:border-white/60 group-focus-visible:shadow-[0_0_36px_-6px_rgb(255_255_255/0.35)]">
@@ -75,7 +86,7 @@ const sets = [false, true] as const;
                         {client.name}
                       </span>
                       <span class="mt-1.5 text-[12px] font-medium tracking-[0.06em] text-muted uppercase transition-colors duration-500 group-hover:text-white/80 md:text-[13px]">
-                        {client.subscribers} {t.clients.subscribers}
+                        {formatSubs(client.subscribers)} {t.clients.subscribers}
                       </span>
                     </a>
                   </li>

@@ -1,8 +1,8 @@
 ---
 // Плавающая кнопка чата (справа снизу, как у dezzzy.com). По клику открывает панель
 // со способами связи: WhatsApp · Telegram · почта · Discord (копирует ник).
-// Скрыта, пока на экране первый экран (#about) и блок контактов (#contact); на md+ — и у подвала,
-// чтобы не наезжать на кнопку «Наверх». Копирование делает глобальный обработчик [data-copy] из site.ts.
+// Скрыта, пока на экране первый экран (#about) и блок контактов (#contact), а также у подвала
+// (на любой ширине), чтобы не наезжать на кнопку «Наверх». Копирование делает глобальный обработчик [data-copy] из site.ts.
 import Icon from './Icon.astro';
 import type { IconName } from '../lib/icons';
 import contacts from '../data/contacts.json';
@@ -197,6 +197,11 @@ const checkIcon =
     pointer-events: auto;
     transition-delay: 0s;
   }
+  .chat[data-shown][data-locked] {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
 
   .chat-panel {
     opacity: 0;
@@ -338,12 +343,22 @@ const checkIcon =
       }
     };
 
+    // Пока открыт лайтбокс или меню (прокрутка заблокирована) — кнопка не нужна
+    let locked = 0;
+    document.addEventListener('scroll:lock', () => {
+      locked++;
+      root.toggleAttribute('data-locked', true);
+    });
+    document.addEventListener('scroll:unlock', () => {
+      locked = Math.max(0, locked - 1);
+      root.toggleAttribute('data-locked', locked > 0);
+    });
+
     const heroAnchor = document.getElementById('about');
     const hero = heroAnchor?.closest('section') ?? heroAnchor;
     const contactAnchor = document.getElementById('contact');
     const contact = contactAnchor?.closest('section') ?? contactAnchor;
     const footer = document.querySelector<HTMLElement>('body > footer');
-    const mdUp = window.matchMedia('(min-width: 768px)');
 
     let ticking = false;
     const update = () => {
@@ -357,8 +372,8 @@ const checkIcon =
         const r = contact.getBoundingClientRect();
         covered = r.top < vh * 0.7 && r.bottom > vh * 0.3;
       }
-      // На md+ подвал (кнопка «Наверх») стоит ровно под плавающей кнопкой
-      if (!covered && footer && mdUp.matches) covered = footer.getBoundingClientRect().top < vh - 56;
+      // Подвал (кнопка «Наверх») уходит под плавающую кнопку — на любой ширине прячем её заранее
+      if (!covered && footer) covered = footer.getBoundingClientRect().top < vh - 56;
       setShown(pastHero && !covered);
     };
     const requestUpdate = () => {

@@ -45,16 +45,25 @@ const cards = t.pricing.cards.map((card, i) => {
     }),
   };
 });
+
+// Строки общей сетки карточек (≥ sm, через subgrid): шапка, заголовок, черта, пункты…, кнопка.
+// Высоту каждой строки задаёт более высокая из двух карточек — черты, пункты и кнопки стоят ровно,
+// а лишнее место под заголовком появляется только если он реально переносится.
+const featureRows = Math.max(1, ...cards.map((card) => card.features.length));
+const gridRows = featureRows + 4;
 ---
 
-<section id="pricing" class="py-24 md:py-32" aria-labelledby="pricing-title">
+<section id="pricing" class="py-16 sm:py-24 md:py-32" aria-labelledby="pricing-title">
   <div class="container-page">
     <SectionTitle id="pricing-title">{t.pricing.title}</SectionTitle>
 
-    <div class="mx-auto mt-12 grid max-w-[780px] gap-4 sm:grid-cols-2 md:mt-16 md:gap-6">
+    <div
+      class="mx-auto mt-12 grid max-w-[780px] gap-4 sm:grid-cols-2 sm:gap-y-0 md:mt-16 md:gap-x-6"
+      style={`--pricing-rows: ${gridRows}; --pricing-feature-rows: ${featureRows}`}
+    >
       {
         cards.map((card, i) => (
-          <div class="mx-auto flex w-full max-w-[420px]" data-reveal style={`--reveal-delay: ${i * 120}ms`}>
+          <div class="pricing-cell mx-auto flex w-full max-w-[420px]" data-reveal style={`--reveal-delay: ${i * 120}ms`}>
             <article
               class="pricing-card card group relative isolate flex w-full flex-col overflow-hidden rounded-[28px] p-7 md:p-9"
               aria-labelledby={card.titleId}
@@ -74,14 +83,14 @@ const cards = t.pricing.cards.map((card, i) => {
 
               <h3
                 id={card.titleId}
-                class="mt-8 font-display text-[26px] leading-[1.05] font-black tracking-[-0.01em] text-balance uppercase sm:min-h-[2.1em] md:text-[30px]"
+                class="mt-8 font-display text-[26px] leading-[1.05] font-black tracking-[-0.01em] text-balance uppercase md:text-[30px]"
               >
                 {card.title}
               </h3>
 
               <div class="my-7 h-px bg-line" aria-hidden="true" />
 
-              <ul class="flex flex-col">
+              <ul class="pricing-list flex flex-1 flex-col">
                 {card.features.map((f) => (
                   <li class="flex items-center gap-3.5 py-2.5">
                     <span
@@ -90,7 +99,7 @@ const cards = t.pricing.cards.map((card, i) => {
                     >
                       <Icon name={f.icon} size={16} />
                     </span>
-                    <span class="text-[15px] leading-snug text-white/85 md:text-base">
+                    <span class="text-[15px] leading-snug text-pretty text-white/85 md:text-base">
                       {/* в одну строку, чтобы шаблон не добавил лишних пробелов вокруг числа */}
                       {f.split ? (
                         <>{f.split.before}<strong class="font-semibold whitespace-nowrap text-white">{f.split.strong}</strong>{f.split.after}</>
@@ -101,8 +110,6 @@ const cards = t.pricing.cards.map((card, i) => {
                   </li>
                 ))}
               </ul>
-
-              <div class="flex-1" aria-hidden="true" />
 
               <a class="btn btn-primary mt-8 w-full" href="#contact" aria-describedby={card.titleId}>
                 {t.pricing.order}
@@ -147,6 +154,30 @@ const cards = t.pricing.cards.map((card, i) => {
     }
     .pricing-card:hover::before {
       opacity: 1;
+    }
+  }
+
+  /* Карточки рядом (≥ sm): обе встают на общие строки сетки через subgrid, поэтому
+     черта под заголовком, пункты и кнопки выровнены, даже если заголовок или пункт
+     переносится только в одной карточке. Без поддержки subgrid — обычная flex-колонка. */
+  @supports (grid-template-rows: subgrid) {
+    @media (min-width: 40rem) {
+      .pricing-cell,
+      .pricing-card,
+      .pricing-list {
+        display: grid;
+        grid-template-rows: subgrid;
+        row-gap: 0;
+      }
+      .pricing-cell {
+        grid-row: span var(--pricing-rows);
+      }
+      .pricing-card {
+        grid-row: 1 / -1;
+      }
+      .pricing-list {
+        grid-row: span var(--pricing-feature-rows);
+      }
     }
   }
 
