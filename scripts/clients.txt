@@ -1,0 +1,14 @@
+# Каналы для блока WORKED WITH — по одной ссылке на строку.
+# После изменения запустить: npm run clients
+https://www.youtube.com/@krishnasahay_
+https://www.youtube.com/@LikeNastyaofficial
+https://www.youtube.com/@2swag.productions
+https://www.youtube.com/@ColeAcheronti
+https://www.youtube.com/@TheBovBoys
+https://www.youtube.com/@angryginge13
+https://www.youtube.com/@zople
+https://www.youtube.com/@gaverinoo
+https://www.youtube.com/@braydennss
+https://www.youtube.com/@AndrewProTV
+https://www.youtube.com/@JuliaFilippoyt
+https://www.youtube.com/@AbuLayha

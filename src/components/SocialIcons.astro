@@ -1,0 +1,42 @@
+---
+// Ряд иконок соцсетей (X · Instagram · Behance · Telegram · Discord). Discord копирует ник.
+import Icon, { type IconName } from './Icon.astro';
+import socials from '../data/socials.json';
+import { useTranslations, type Lang } from '../i18n/utils';
+
+interface Props {
+  lang: Lang;
+  size?: 'md' | 'sm';
+  class?: string;
+}
+const { lang, size = 'md', class: className } = Astro.props;
+const t = useTranslations(lang);
+const box = size === 'md' ? 'size-11' : 'size-10';
+const icon = size === 'md' ? 18 : 16;
+const itemClass = `group inline-flex ${box} items-center justify-center rounded-full border border-line bg-white/[0.03] text-muted transition-[color,border-color,background-color,transform] duration-300 hover:-translate-y-0.5 hover:border-white/40 hover:bg-white/[0.08] hover:text-white`;
+---
+
+<ul class:list={['flex items-center gap-2.5', className]}>
+  {
+    socials.map((s) => (
+      <li>
+        {'url' in s && s.url ? (
+          <a href={s.url} target="_blank" rel="noopener noreferrer" class={itemClass} aria-label={s.name} title={s.name}>
+            <Icon name={s.id as IconName} size={icon} />
+          </a>
+        ) : (
+          <button
+            type="button"
+            class={itemClass}
+            data-copy={s.copy}
+            data-copied-label={`${t.contact.copied} ${s.copy}`}
+            aria-label={`${s.name}: ${s.copy} (${t.contact.copy})`}
+            title={`${s.name}: ${s.copy}`}
+          >
+            <Icon name={s.id as IconName} size={icon} />
+          </button>
+        )}
+      </li>
+    ))
+  }
+</ul>

@@ -1,0 +1,10 @@
+---
+// Заголовок секции: жирный капс Montserrat + короткая белая черта под ним (класс .section-title в global.css).
+interface Props {
+  id?: string;
+  class?: string;
+}
+const { id, class: className } = Astro.props;
+---
+
+<h2 id={id} class:list={['section-title', className]} data-reveal><slot /></h2>

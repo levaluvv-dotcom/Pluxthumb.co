@@ -1,0 +1,102 @@
+{
+  "meta": {
+    "title": "Plux Design — YouTube Thumbnail Designer",
+    "description": "Maxim, 19 — YouTube thumbnail designer with 5+ years of experience. 2000+ thumbnails, 200M+ views. Bold, clear visuals that make viewers click."
+  },
+  "nav": {
+    "about": "About me",
+    "examples": "Examples",
+    "pricing": "Pricing",
+    "contact": "Contact",
+    "order": "Order now",
+    "menu": "Menu",
+    "close": "Close",
+    "language": "Language"
+  },
+  "hero": {
+    "badge": "Available for orders",
+    "name": "Maxim, 19",
+    "title": "Design for creators",
+    "text": "Thumbnail designer with 5+ years of experience. I create bold, clear visuals that make viewers click.",
+    "stats": [
+      { "value": 5, "suffix": "+", "label": "Years exp." },
+      { "value": 2000, "suffix": "+", "label": "Projects done" },
+      { "value": 200, "suffix": "M+", "label": "Total views" }
+    ],
+    "order": "Order now",
+    "work": "View work",
+    "photoAlt": "Maxim, thumbnail designer, in front of his thumbnails"
+  },
+  "wall": {
+    "trusted": "Trusted by 15+ creators",
+    "open": "Open thumbnail",
+    "close": "Close",
+    "prev": "Previous",
+    "next": "Next",
+    "alt": "YouTube thumbnail by Plux Design"
+  },
+  "clients": {
+    "title": "Worked with",
+    "subscribers": "subscribers"
+  },
+  "pricing": {
+    "title": "Pricing",
+    "cards": [
+      {
+        "title": "Thumbnail design",
+        "features": ["1 thumbnail", "24-hour delivery", "Unlimited revisions"]
+      },
+      {
+        "title": "A/B test pack",
+        "features": ["3 thumbnail variants for A/B testing", "48-hour delivery", "Unlimited revisions"]
+      }
+    ],
+    "order": "Order now"
+  },
+  "contact": {
+    "title": "Contact",
+    "subtitle": "Let’s work together",
+    "fastest": "Fastest reply",
+    "whatsapp": "Message me on WhatsApp",
+    "message": "Message me",
+    "telegram": "Telegram",
+    "email": "Email",
+    "discord": "Discord",
+    "copy": "Copy",
+    "copied": "Copied!"
+  },
+  "faq": {
+    "title": "FAQ",
+    "items": [
+      {
+        "q": "Do you offer discounts for bulk orders?",
+        "a": "Yes! 5+ thumbnails get a better rate, and 10+ get an even bigger discount."
+      },
+      {
+        "q": "How many revisions do I get?",
+        "a": "Unlimited, until you love the result."
+      },
+      {
+        "q": "What’s the turnaround time?",
+        "a": "24–48 hours, depending on the number of thumbnails."
+      },
+      {
+        "q": "Can you redesign my old thumbnails?",
+        "a": "Yes, at a discounted rate. A fresh thumbnail can boost the CTR of older videos."
+      },
+      {
+        "q": "How does ordering work?",
+        "a": "Send me your video title, photos and ideas → I design the thumbnail → revisions → you get the final file."
+      }
+    ]
+  },
+  "footer": {
+    "rights": "All rights reserved.",
+    "top": "Back to top"
+  },
+  "chat": {
+    "open": "Chat with me",
+    "title": "Chat with me",
+    "close": "Close"
+  }
+}
