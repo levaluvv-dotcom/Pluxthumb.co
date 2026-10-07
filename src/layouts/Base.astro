@@ -1,0 +1,66 @@
+---
+import '../styles/global.css';
+import { asset, localePath, useTranslations, type Lang } from '../i18n/utils';
+
+interface Props {
+  lang: Lang;
+  noindex?: boolean;
+}
+
+const { lang, noindex = false } = Astro.props;
+const t = useTranslations(lang);
+const site = Astro.site ?? new URL('https://levaluvv-dotcom.github.io');
+const canonical = new URL(localePath(lang), site).href;
+const alternates = (['en', 'ru'] as const).map((l) => ({ lang: l, href: new URL(localePath(l), site).href }));
+const ogImage = new URL(asset('og.jpg'), site).href;
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <script is:inline>
+      // Анимации появления включаются только если основной скрипт сайта загрузился; иначе всё видно сразу
+      document.documentElement.classList.add('js');
+      document.addEventListener('DOMContentLoaded', function () {
+        if (!window.__pluxReady) document.documentElement.classList.remove('js');
+      });
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{t.meta.title}</title>
+    <meta name="description" content={t.meta.description} />
+    <meta name="theme-color" content="#050505" />
+    {noindex && <meta name="robots" content="noindex" />}
+    <link rel="canonical" href={canonical} />
+    {alternates.map((a) => <link rel="alternate" hreflang={a.lang} href={a.href} />)}
+    <link rel="alternate" hreflang="x-default" href={alternates[0].href} />
+
+    <link rel="icon" href={asset('favicon.svg')} type="image/svg+xml" />
+    <link rel="icon" href={asset('favicon-32.png')} sizes="32x32" type="image/png" />
+    <link rel="apple-touch-icon" href={asset('apple-touch-icon.png')} />
+    <link rel="manifest" href={asset('site.webmanifest')} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Plux Design" />
+    <meta property="og:title" content={t.meta.title} />
+    <meta property="og:description" content={t.meta.description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content={lang === 'ru' ? 'ru_RU' : 'en_US'} />
+    <meta property="og:locale:alternate" content={lang === 'ru' ? 'en_US' : 'ru_RU'} />
+    <meta property="og:image:alt" content={t.meta.title} />
+    <link rel="sitemap" href={asset('sitemap-index.xml')} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@PluxThumbnails" />
+    <meta name="twitter:image" content={ogImage} />
+  </head>
+  <body>
+    <slot />
+    <div id="toast" class="toast" role="status" aria-live="polite" data-default={t.contact.copied}></div>
+    <script>
+      import '../scripts/site';
+    </script>
+  </body>
+</html>

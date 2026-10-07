@@ -1,0 +1,45 @@
+---
+// Подвал: текстовый логотип и копирайт слева, соцсети и кнопка «Наверх» справа.
+// На мобильных — по центру. Плавающая кнопка чата у подвала прячется сама, поэтому отдельный запас
+// снизу не нужен — только безопасная зона iPhone (viewport-fit=cover).
+// Кнопка «Наверх» визуально 40px, область нажатия расширена ::before до 44px (3px за рамкой 1px).
+import Icon from './Icon.astro';
+import SocialIcons from './SocialIcons.astro';
+import { useTranslations, type Lang } from '../i18n/utils';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const year = new Date().getFullYear();
+---
+
+<footer class="border-t border-line">
+  <div
+    class="container-page flex flex-col items-center justify-between gap-6 pt-10 pb-[max(2.5rem,calc(env(safe-area-inset-bottom)+1.5rem))] text-center md:flex-row md:pt-12 md:pb-12 md:text-left"
+  >
+    <div class="flex flex-col items-center gap-2.5 md:items-start">
+      <a
+        href="#top"
+        class="font-display text-[20px] leading-none font-extrabold tracking-[-0.01em] whitespace-nowrap text-white transition-opacity duration-300 hover:opacity-75"
+        >Plux Design</a
+      >
+      <p class="text-sm text-muted">© {year} Plux Design. {t.footer.rights}</p>
+    </div>
+
+    <div class="flex flex-wrap items-center justify-center gap-3">
+      <SocialIcons lang={lang} size="sm" />
+      <span class="h-6 w-px bg-line" aria-hidden="true"></span>
+      <a
+        href="#top"
+        aria-label={t.footer.top}
+        title={t.footer.top}
+        class="relative inline-flex size-10 items-center justify-center rounded-full border border-line bg-white/[0.03] text-white transition-[translate,border-color,background-color] duration-300 ease-out-quart hover:-translate-y-0.5 hover:border-white/40 hover:bg-white/[0.08] motion-reduce:transition-none motion-reduce:hover:translate-y-0 before:absolute before:-inset-0.75"
+      >
+        <Icon name="arrow-up" size={16} />
+      </a>
+    </div>
+  </div>
+</footer>

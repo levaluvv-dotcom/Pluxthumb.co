@@ -1,0 +1,474 @@
+---
+// Шапка: текстовый логотип, навигация с «таблеткой» под активной секцией, переключатель языка, кнопка заказа.
+// До lg (<1024px) — полноэкранное меню-диалог с крупными ссылками.
+// Кнопка «Заказать» видна с md, навигация по центру — с lg (на планшете ей не хватает места рядом с переключателем и кнопкой, там она живёт в меню).
+import Icon from './Icon.astro';
+import SocialIcons from './SocialIcons.astro';
+import { useTranslations, localePath, languages, type Lang } from '../i18n/utils';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+const links = [
+  { id: 'about', label: t.nav.about },
+  { id: 'examples', label: t.nav.examples },
+  { id: 'pricing', label: t.nav.pricing },
+  { id: 'contact', label: t.nav.contact },
+];
+const langs = Object.keys(languages) as Lang[];
+
+const logoClass =
+  'font-display text-[21px] leading-none font-extrabold tracking-[-0.01em] whitespace-nowrap text-white md:text-[22px]';
+const roundBtnClass =
+  'inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-line bg-white/[0.03] text-white transition-[background-color,border-color] duration-300 hover:border-white/40 hover:bg-white/[0.08]';
+const langLinkBase =
+  'inline-flex items-center justify-center rounded-full font-semibold tracking-[0.08em] transition-colors duration-300';
+---
+
+<header class="site-header fixed inset-x-0 top-0 z-50 h-[var(--header-h)]" data-header>
+  <div class="header-bg pointer-events-none absolute inset-0" aria-hidden="true"></div>
+
+  <div
+    class="header-bar container-page relative flex h-full items-center justify-between gap-4 lg:grid lg:grid-cols-[1fr_auto_1fr]"
+  >
+    <a href="#top" class:list={[logoClass, 'justify-self-start py-2']}>Plux Design</a>
+
+    <nav class="relative hidden justify-self-center lg:block" aria-label={t.nav.menu} data-nav>
+      <span
+        class="pointer-events-none absolute top-0 left-0 h-full w-0 rounded-full bg-white/[0.08] opacity-0 shadow-[inset_0_0_0_1px_rgb(255_255_255/0.06)] transition-[transform,width,opacity] duration-500 ease-out-expo motion-reduce:transition-none"
+        aria-hidden="true"
+        data-nav-pill></span>
+      <ul class="flex items-center">
+        {
+          links.map((l) => (
+            <li>
+              <a
+                href={`#${l.id}`}
+                class="relative inline-flex items-center rounded-full px-4 py-2 text-sm font-medium text-muted transition-colors duration-300 before:absolute before:inset-x-0 before:-inset-y-1 hover:text-white aria-[current=true]:text-white"
+                data-nav-link={l.id}
+              >
+                {l.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="flex items-center gap-3 justify-self-end">
+      <div class="hidden items-center rounded-full border border-line p-[3px] md:flex" role="group" aria-label={t.nav.language}>
+        {
+          langs.map((l) => (
+            <a
+              href={localePath(l)}
+              hreflang={l}
+              lang={l}
+              aria-current={l === lang ? 'page' : undefined}
+              class:list={[
+                langLinkBase,
+                'relative h-8 min-w-10 px-2.5 text-xs before:absolute before:inset-x-0 before:-inset-y-1.5',
+                l === lang ? 'bg-white/10 text-white' : 'text-muted hover:text-white',
+              ]}
+              data-lang-link
+            >
+              {languages[l]}
+            </a>
+          ))
+        }
+      </div>
+
+      <a class="btn btn-primary btn-sm hidden md:inline-flex" href="#contact">{t.nav.order}</a>
+
+      <button
+        type="button"
+        class:list={[roundBtnClass, 'lg:hidden']}
+        aria-label={t.nav.menu}
+        aria-expanded="false"
+        aria-controls="site-menu"
+        aria-haspopup="dialog"
+        data-menu-toggle
+      >
+        <Icon name="menu" size={20} />
+      </button>
+    </div>
+  </div>
+</header>
+
+<div
+  id="site-menu"
+  class="menu fixed inset-0 z-[90] lg:hidden"
+  role="dialog"
+  aria-modal="true"
+  aria-label={t.nav.menu}
+  inert
+  data-menu
+>
+  <div class="absolute inset-0 bg-bg/95 backdrop-blur-xl" aria-hidden="true"></div>
+
+  <div class="menu-panel relative h-full overflow-y-auto overscroll-contain" data-lenis-prevent>
+    <div class="flex min-h-full flex-col">
+      <div class="container-page flex h-[var(--header-h)] shrink-0 items-center justify-between gap-4">
+        <a href="#top" class:list={[logoClass, 'py-2']} data-menu-link>Plux Design</a>
+        <button type="button" class={roundBtnClass} aria-label={t.nav.close} data-menu-close>
+          <Icon name="close" size={20} />
+        </button>
+      </div>
+
+      <nav class="container-page pt-6" aria-label={t.nav.menu}>
+        <ul class="border-t border-line">
+          {
+            links.map((l, i) => (
+              <li class="menu-item border-b border-line" style={`--i: ${i}`}>
+                <a
+                  href={`#${l.id}`}
+                  class="group flex items-center justify-between gap-4 py-4 font-display text-[40px] leading-[1.05] font-black tracking-[-0.01em] text-white uppercase sm:text-[48px]"
+                  data-nav-link={l.id}
+                  data-menu-link
+                >
+                  <span>{l.label}</span>
+                  <span
+                    class="font-sans text-xs font-medium tracking-[0.2em] text-dim transition-colors duration-300 group-aria-[current=true]:text-white"
+                    aria-hidden="true"
+                  >
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+
+      <div class="container-page mt-auto pt-10 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
+        <div class="menu-item" style={`--i: ${links.length}`}>
+          <a class="btn btn-primary w-full" href="#contact" data-menu-link>{t.nav.order}</a>
+        </div>
+        <div class="menu-item mt-6 flex flex-wrap items-center justify-between gap-4" style={`--i: ${links.length + 1}`}>
+          <div class="flex items-center rounded-full border border-line p-[3px]" role="group" aria-label={t.nav.language}>
+            {
+              langs.map((l) => (
+                <a
+                  href={localePath(l)}
+                  hreflang={l}
+                  lang={l}
+                  aria-current={l === lang ? 'page' : undefined}
+                  class:list={[
+                    langLinkBase,
+                    'h-11 min-w-12 px-3 text-[13px]',
+                    l === lang ? 'bg-white/10 text-white' : 'text-muted hover:text-white',
+                  ]}
+                  data-lang-link
+                >
+                  {languages[l]}
+                </a>
+              ))
+            }
+          </div>
+          <SocialIcons lang={lang} size="sm" />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Подложка шапки: прозрачная наверху, «стекло» после начала прокрутки */
+  .header-bg {
+    border-bottom: 1px solid transparent;
+    background-color: rgb(5 5 5 / 0);
+    transition:
+      background-color 0.4s ease,
+      border-color 0.4s ease,
+      -webkit-backdrop-filter 0.4s ease,
+      backdrop-filter 0.4s ease;
+  }
+  .site-header.is-scrolled .header-bg {
+    border-bottom-color: var(--color-line, rgb(255 255 255 / 0.08));
+    background-color: rgb(5 5 5 / 0.85);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+    backdrop-filter: blur(20px) saturate(140%);
+  }
+
+  /* Появление шапки при загрузке */
+  @media (prefers-reduced-motion: no-preference) {
+    .header-bar {
+      animation: plux-header-in 0.9s var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1)) 0.05s both;
+    }
+  }
+  @keyframes plux-header-in {
+    from {
+      opacity: 0;
+      transform: translate3d(0, -14px, 0);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* Мобильное меню: закрыто — невидимо (и inert), открыто — плавно проявляется, пункты выезжают по очереди */
+  .menu {
+    visibility: hidden;
+    opacity: 0;
+    transition:
+      opacity 0.4s var(--ease-out-quart, cubic-bezier(0.25, 1, 0.5, 1)),
+      visibility 0s linear 0.45s;
+  }
+  .menu[data-open] {
+    visibility: visible;
+    opacity: 1;
+    transition:
+      opacity 0.45s var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1)),
+      visibility 0s linear 0s;
+  }
+  .menu-panel {
+    transform: translate3d(0, -10px, 0);
+    transition: transform 0.45s var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1));
+  }
+  .menu[data-open] .menu-panel {
+    transform: none;
+    transition-duration: 0.5s;
+  }
+  .menu-item {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
+    transition:
+      opacity 0.25s ease,
+      transform 0.4s var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1));
+  }
+  .menu[data-open] .menu-item {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity 0.6s var(--ease-out-quart, cubic-bezier(0.25, 1, 0.5, 1)) calc(var(--i, 0) * 60ms + 120ms),
+      transform 0.9s var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1)) calc(var(--i, 0) * 60ms + 120ms);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .menu,
+    .menu[data-open],
+    .menu-panel,
+    .menu[data-open] .menu-panel,
+    .menu-item,
+    .menu[data-open] .menu-item {
+      transform: none;
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  /* ---------- Фон шапки после начала прокрутки ---------- */
+  const header = document.querySelector<HTMLElement>('[data-header]');
+  if (header) {
+    let ticking = false;
+    const syncScrolled = () => {
+      ticking = false;
+      header.classList.toggle('is-scrolled', window.scrollY > 8);
+    };
+    window.addEventListener(
+      'scroll',
+      () => {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(syncScrolled);
+      },
+      { passive: true },
+    );
+    syncScrolled();
+  }
+
+  /* ---------- Активная секция в меню ---------- */
+  const navLinks = Array.from(document.querySelectorAll<HTMLAnchorElement>('[data-nav-link]'));
+  const navIds = [...new Set(navLinks.map((link) => link.dataset.navLink ?? ''))].filter(Boolean);
+  const nav = document.querySelector<HTMLElement>('[data-nav]');
+  const pill = document.querySelector<HTMLElement>('[data-nav-pill]');
+  let activeId: string | null = null;
+
+  // «Таблетка» плавно переезжает под активную ссылку; при первом появлении — без проезда, только проявление
+  const placePill = () => {
+    if (!nav || !pill) return;
+    const link = activeId ? nav.querySelector<HTMLElement>(`[data-nav-link="${activeId}"]`) : null;
+    if (!link || link.offsetWidth === 0) {
+      pill.style.opacity = '0';
+      return;
+    }
+    const navBox = nav.getBoundingClientRect();
+    const box = link.getBoundingClientRect();
+    const appearing = pill.style.opacity !== '1';
+    if (appearing) pill.style.transitionProperty = 'opacity';
+    pill.style.width = `${box.width}px`;
+    pill.style.transform = `translate3d(${box.left - navBox.left}px, 0, 0)`;
+    if (appearing) {
+      void pill.offsetWidth;
+      pill.style.transitionProperty = '';
+    }
+    pill.style.opacity = '1';
+  };
+
+  const setActive = (id: string | null) => {
+    if (id === activeId) return;
+    activeId = id;
+    for (const link of navLinks) {
+      if (id && link.dataset.navLink === id) link.setAttribute('aria-current', 'true');
+      else link.removeAttribute('aria-current');
+    }
+    placePill();
+  };
+
+  // Секции без своего пункта меню подсвечивают ближайший: Worked with → Examples, FAQ → Contact
+  const aliases: Record<string, string> = { clients: 'examples', faq: 'contact' };
+  const inView = new Set<Element>();
+  const targets = new Map<Element, string>();
+  let holdUntil = 0;
+  let holdTimer: number | undefined;
+  const pickActive = () => {
+    if (performance.now() < holdUntil) return;
+    let found: string | null = null;
+    targets.forEach((id, el) => {
+      if (!found && inView.has(el)) found = id;
+    });
+    setActive(found);
+  };
+
+  if (navLinks.length > 0 && 'IntersectionObserver' in window) {
+    // Порядок вставки = порядок секций на странице
+    const ids = [...navIds, ...Object.keys(aliases)];
+    const found = ids
+      .map((id) => ({ id: aliases[id] ?? id, el: document.getElementById(id) }))
+      .filter((x): x is { id: string; el: HTMLElement } => !!x.el && navIds.includes(x.id))
+      .map((x) => ({ id: x.id, el: x.el.closest('section') ?? x.el }))
+      .sort((a, b) => (a.el.compareDocumentPosition(b.el) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1));
+    for (const x of found) targets.set(x.el, x.id);
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!targets.has(entry.target)) continue;
+          if (entry.isIntersecting) inView.add(entry.target);
+          else inView.delete(entry.target);
+        }
+        pickActive();
+      },
+      { rootMargin: '-45% 0px -50% 0px' },
+    );
+    targets.forEach((_id, el) => io.observe(el));
+  }
+
+  // Клик по пункту: сразу подсветить цель и не «пробегать» промежуточные секции во время плавной прокрутки
+  for (const link of navLinks) {
+    link.addEventListener('click', () => {
+      const id = link.dataset.navLink;
+      if (!id || !document.getElementById(id)) return;
+      holdUntil = 0;
+      setActive(id);
+      holdUntil = performance.now() + 1200;
+      window.clearTimeout(holdTimer);
+      holdTimer = window.setTimeout(() => {
+        holdUntil = 0;
+        pickActive();
+      }, 1250);
+    });
+  }
+
+  if (nav && 'ResizeObserver' in window) new ResizeObserver(() => placePill()).observe(nav);
+  document.fonts?.ready.then(() => placePill());
+
+  /* ---------- Переключатель языка: остаться на той же секции ---------- */
+  const pageSectionIds = ['about', 'examples', 'clients', 'pricing', 'contact', 'faq'];
+  const currentHash = () => {
+    if (window.scrollY < 8) return '';
+    const line = window.innerHeight * 0.45;
+    for (const id of pageSectionIds) {
+      const el = document.getElementById(id);
+      if (!el) continue;
+      const box = (el.closest('section') ?? el).getBoundingClientRect();
+      if (box.top <= line && box.bottom > line) return `#${id}`;
+    }
+    return location.hash.length > 1 ? location.hash : '';
+  };
+  document.querySelectorAll<HTMLAnchorElement>('[data-lang-link]').forEach((link) => {
+    link.addEventListener('click', (e) => {
+      if (link.getAttribute('aria-current') === 'page') {
+        e.preventDefault();
+        return;
+      }
+      link.hash = currentHash();
+    });
+    link.addEventListener('auxclick', () => {
+      link.hash = currentHash();
+    });
+  });
+
+  /* ---------- Мобильное меню ---------- */
+  const menu = document.querySelector<HTMLElement>('[data-menu]');
+  const toggle = document.querySelector<HTMLButtonElement>('[data-menu-toggle]');
+  if (menu && toggle) {
+    let open = false;
+
+    const openMenu = () => {
+      if (open) return;
+      open = true;
+      menu.toggleAttribute('inert', false);
+      menu.setAttribute('data-open', '');
+      toggle.setAttribute('aria-expanded', 'true');
+      document.dispatchEvent(new Event('scroll:lock'));
+      requestAnimationFrame(() => {
+        menu.querySelector<HTMLElement>('nav a[href]')?.focus({ preventScroll: true });
+      });
+    };
+
+    const closeMenu = (restoreFocus = true) => {
+      if (!open) return;
+      open = false;
+      menu.removeAttribute('data-open');
+      menu.toggleAttribute('inert', true);
+      toggle.setAttribute('aria-expanded', 'false');
+      document.dispatchEvent(new Event('scroll:unlock'));
+      if (restoreFocus) toggle.focus({ preventScroll: true });
+    };
+
+    toggle.addEventListener('click', () => (open ? closeMenu() : openMenu()));
+    menu.querySelector<HTMLButtonElement>('[data-menu-close]')?.addEventListener('click', () => closeMenu());
+    // Слушатель на самой ссылке срабатывает раньше глобального обработчика якорей — прокрутка уже разблокирована
+    menu.querySelectorAll<HTMLAnchorElement>('[data-menu-link]').forEach((link) => {
+      link.addEventListener('click', () => closeMenu());
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (!open) return;
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        closeMenu();
+        return;
+      }
+      if (e.key !== 'Tab') return;
+      // Удерживаем фокус внутри открытого меню
+      const items = Array.from(menu.querySelectorAll<HTMLElement>('a[href], button:not([disabled])'));
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (!first || !last) return;
+      const current = document.activeElement;
+      const outside = !current || !menu.contains(current);
+      if (e.shiftKey && (outside || current === first)) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && (outside || current === last)) {
+        e.preventDefault();
+        first.focus();
+      }
+    });
+
+    // Расширили окно до планшета/десктопа — меню больше не нужно
+    window.matchMedia('(min-width: 1024px)').addEventListener('change', (e) => {
+      if (e.matches) closeMenu(false);
+    });
+    // Вернулись «Назад» из кеша страницы — меню закрыто, прокрутка разблокирована
+    window.addEventListener('pageshow', (e) => {
+      if (e.persisted) closeMenu(false);
+    });
+  }
+</script>

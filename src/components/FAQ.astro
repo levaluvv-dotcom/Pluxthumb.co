@@ -1,0 +1,146 @@
+---
+// FAQ: аккордеон на нативном <details> (работает без JS) с плавной анимацией высоты ответа
+// через Web Animations API + разметка FAQPage (schema.org) для поисковиков.
+import Icon from './Icon.astro';
+import SectionTitle from './SectionTitle.astro';
+import { useTranslations, type Lang } from '../i18n/utils';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const items = t.faq.items;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  inLanguage: lang,
+  mainEntity: items.map((item) => ({
+    '@type': 'Question',
+    name: item.q,
+    acceptedAnswer: { '@type': 'Answer', text: item.a },
+  })),
+};
+// Экранируем «<», чтобы текст не мог закрыть тег <script>
+const jsonLdHtml = JSON.stringify(jsonLd).replace(/</g, '\\u003c');
+---
+
+<section id="faq" class="py-16 sm:py-24 md:py-32" aria-labelledby="faq-title">
+  <div class="container-page">
+    <SectionTitle id="faq-title">{t.faq.title}</SectionTitle>
+
+    <div class="mx-auto mt-12 flex max-w-[820px] flex-col gap-3 md:mt-16">
+      {
+        items.map((item, i) => (
+          <div data-reveal style={`--reveal-delay: ${i * 70}ms`}>
+            <details
+              class="faq-item group rounded-[20px] border border-line bg-white/[0.02] transition-[background-color,border-color] duration-500 ease-out-quart open:border-line-strong open:bg-white/[0.04]"
+              data-faq-item
+            >
+              <summary class="group/q flex cursor-pointer list-none items-center justify-between gap-6 rounded-[20px] px-5 py-5 md:px-7 md:py-6 [&::-webkit-details-marker]:hidden">
+                <span class="text-[16px] leading-snug font-semibold text-white md:text-lg">{item.q}</span>
+                <span
+                  class="faq-chip inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-line bg-white/[0.03] text-white transition-[rotate,border-color,background-color] duration-400 ease-out-expo group-open:rotate-45 group-hover/q:border-white/40 group-hover/q:bg-white/[0.08] motion-reduce:transition-none"
+                  aria-hidden="true"
+                >
+                  <Icon name="plus" size={16} />
+                </span>
+              </summary>
+              <div class="faq-panel overflow-hidden" data-faq-panel>
+                <p class="max-w-[62ch] px-5 pb-6 text-[15px] leading-relaxed text-muted md:px-7 md:text-base">
+                  {item.a}
+                </p>
+              </div>
+            </details>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+
+  <script is:inline type="application/ld+json" set:html={jsonLdHtml} />
+</section>
+
+<style>
+  /* Пока ответ сворачивается, атрибут [open] ещё стоит — но карточка и «плюс» уже выглядят закрытыми */
+  .faq-item[data-closing] {
+    border-color: var(--color-line, rgb(255 255 255 / 0.08));
+    background-color: rgb(255 255 255 / 0.02);
+  }
+  .faq-item[data-closing] .faq-chip {
+    rotate: 0deg;
+  }
+
+  /* Фокус с клавиатуры обводит всю карточку, а не только строку вопроса */
+  @supports selector(:has(*)) {
+    .faq-item:has(> summary:focus-visible) {
+      outline: 2px solid #fff;
+      outline-offset: 3px;
+    }
+    .faq-item > summary:focus-visible {
+      outline: none;
+    }
+  }
+</style>
+
+<script>
+  // Плавное раскрытие/сворачивание ответов. Без JS и при prefers-reduced-motion — обычное мгновенное
+  // поведение <details>. Enter/Space на <summary> порождают click, так что клавиатура работает так же.
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const DURATION = 450;
+  const EASING = 'cubic-bezier(0.16, 1, 0.3, 1)';
+
+  document.querySelectorAll<HTMLDetailsElement>('[data-faq-item]').forEach((item) => {
+    const summary = item.querySelector<HTMLElement>(':scope > summary');
+    const panel = item.querySelector<HTMLElement>('[data-faq-panel]');
+    if (!summary || !panel || typeof panel.animate !== 'function') return;
+
+    let animation: Animation | null = null;
+
+    const stop = () => {
+      animation?.cancel();
+      animation = null;
+    };
+
+    const animateHeight = (from: number, to: number, onDone?: () => void) => {
+      const current = panel.animate([{ height: `${from}px` }, { height: `${to}px` }], {
+        duration: DURATION,
+        easing: EASING,
+      });
+      animation = current;
+      current.onfinish = () => {
+        if (animation === current) animation = null;
+        onDone?.();
+      };
+    };
+
+    summary.addEventListener('click', (e) => {
+      if (reduceMotion.matches) {
+        // Мгновенное переключение браузером; на всякий случай снимаем незавершённую анимацию
+        stop();
+        item.removeAttribute('data-closing');
+        return;
+      }
+
+      e.preventDefault();
+      const expanded = item.open && !item.hasAttribute('data-closing');
+      // Текущая высота (в том числе посреди анимации); у закрытого <details> ответ не отрисован — 0
+      const from = item.open ? panel.getBoundingClientRect().height : 0;
+      stop();
+
+      if (expanded) {
+        item.setAttribute('data-closing', '');
+        animateHeight(from, 0, () => {
+          item.open = false;
+          item.removeAttribute('data-closing');
+        });
+      } else {
+        item.removeAttribute('data-closing');
+        item.open = true;
+        animateHeight(from, panel.scrollHeight);
+      }
+    });
+  });
+</script>

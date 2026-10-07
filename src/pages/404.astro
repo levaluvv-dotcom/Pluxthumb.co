@@ -1,0 +1,16 @@
+---
+import Base from '../layouts/Base.astro';
+import { localePath } from '../i18n/utils';
+---
+
+<Base lang="en" noindex>
+  <main class="container-page flex min-h-svh flex-col items-center justify-center gap-6 text-center">
+    <p class="eyebrow">404</p>
+    <h1 class="section-title">Page not found</h1>
+    <p class="text-muted">Страница не найдена</p>
+    <div class="mt-2 flex flex-wrap justify-center gap-3">
+      <a class="btn btn-primary" href={localePath('en')}>Back to home</a>
+      <a class="btn btn-outline" href={localePath('ru')} lang="ru">На главную</a>
+    </div>
+  </main>
+</Base>

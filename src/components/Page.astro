@@ -1,0 +1,39 @@
+---
+import Base from '../layouts/Base.astro';
+import Header from './Header.astro';
+import Hero from './Hero.astro';
+import ThumbWall from './ThumbWall.astro';
+import WorkedWith from './WorkedWith.astro';
+import Pricing from './Pricing.astro';
+import Contact from './Contact.astro';
+import FAQ from './FAQ.astro';
+import Footer from './Footer.astro';
+import ChatButton from './ChatButton.astro';
+import { useTranslations, type Lang } from '../i18n/utils';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+---
+
+<Base lang={lang}>
+  <a
+    href="#about"
+    class="btn btn-primary btn-sm fixed top-3 left-3 z-[110] -translate-y-24 opacity-0 focus-visible:translate-y-0 focus-visible:opacity-100"
+  >
+    {t.nav.skip}
+  </a>
+  <Header lang={lang} />
+  <main id="top">
+    <Hero lang={lang} />
+    <ThumbWall lang={lang} />
+    <WorkedWith lang={lang} />
+    <Pricing lang={lang} />
+    <Contact lang={lang} />
+    <FAQ lang={lang} />
+  </main>
+  <Footer lang={lang} />
+  <ChatButton lang={lang} />
+</Base>

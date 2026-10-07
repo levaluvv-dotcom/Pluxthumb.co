@@ -1,0 +1,126 @@
+---
+// «Работал с»: бесконечная медленная лента каналов-клиентов (аватар в кольце, название, число подписчиков).
+// Набор отрисован дважды: второй экземпляр — клон для бесшовного цикла (скрыт от скринридеров и Tab).
+import type { ImageMetadata } from 'astro';
+import { Image } from 'astro:assets';
+import SectionTitle from './SectionTitle.astro';
+import clients from '../data/clients.json';
+import { useTranslations, type Lang } from '../i18n/utils';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+// RU: «4.2M» → «4,2 млн», «710K» → «710 тыс.» (как на русском YouTube); число и единица — через неразрывный пробел.
+// EN выводится как есть.
+const ruUnits: Record<string, string> = { K: 'тыс.', M: 'млн', B: 'млрд' };
+const formatSubs = (value: string): string =>
+  lang === 'ru'
+    ? value.replace(
+        /^(\d+(?:\.\d+)?)([KMB])$/,
+        (_match: string, num: string, unit: string) => `${num.replace('.', ',')}\u00A0${ruUnits[unit] ?? unit}`,
+      )
+    : value;
+
+const avatarModules = import.meta.glob<{ default: ImageMetadata }>('../assets/clients/*.{jpg,png,webp}', {
+  eager: true,
+});
+const avatars = new Map<string, ImageMetadata>(
+  Object.entries(avatarModules).map(([path, mod]) => [path.slice(path.lastIndexOf('/') + 1), mod.default]),
+);
+
+// Клиент без аватарки просто не показывается
+const items = clients.flatMap((client) => {
+  const avatar = avatars.get(client.avatar);
+  return avatar ? [{ ...client, avatar }] : [];
+});
+
+// Два прохода: оригинал и клон (для бесшовного цикла, translate -50%).
+const sets = [false, true] as const;
+// Отступы py-8 / -my-8 у ленты дают место свечению и кольцу внутри overflow-hidden, не меняя ритм секции.
+---
+
+<section id="clients" class="py-16 sm:py-24 md:py-32" aria-labelledby="clients-title">
+  <div class="container-page">
+    <SectionTitle id="clients-title">{t.clients.title}</SectionTitle>
+  </div>
+
+  {
+    items.length > 0 && (
+      <div class="mt-12 md:mt-16" data-reveal="fade" style="--reveal-delay: 120ms">
+        <div data-marquee data-clients-marquee class="marquee-fade -my-8 overflow-hidden py-8">
+          <div data-marquee-track data-direction="left" style="--marquee-duration: 48s">
+            {sets.map((clone) => (
+              <ul
+                class="flex shrink-0"
+                role={clone ? undefined : 'list'}
+                aria-hidden={clone ? 'true' : undefined}
+                data-marquee-clone={clone ? '' : undefined}
+              >
+                {items.map((client) => (
+                  <li class="mr-6 shrink-0 md:mr-10">
+                    <a
+                      href={client.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      tabindex={clone ? -1 : undefined}
+                      aria-label={`${client.name} — ${formatSubs(client.subscribers)} ${t.clients.subscribers} (YouTube)`}
+                      class="group flex w-[170px] flex-col items-center text-center md:w-[210px]"
+                    >
+                      <span class="block rounded-full border border-line-strong p-1 shadow-[0_0_0_0_rgb(255_255_255/0)] transition-[border-color,box-shadow] duration-500 ease-out-expo group-hover:border-white/60 group-hover:shadow-[0_0_36px_-6px_rgb(255_255_255/0.35)] group-focus-visible:border-white/60 group-focus-visible:shadow-[0_0_36px_-6px_rgb(255_255_255/0.35)]">
+                        <span class="isolate block overflow-hidden rounded-full bg-surface-2">
+                          <Image
+                            src={client.avatar}
+                            width={128}
+                            height={128}
+                            widths={[128, 256]}
+                            sizes="(min-width: 768px) 128px, 104px"
+                            alt=""
+                            class="block size-[104px] rounded-full object-cover transition-transform duration-500 ease-out-expo motion-safe:group-hover:scale-[1.06] motion-safe:group-focus-visible:scale-[1.06] md:size-32"
+                          />
+                        </span>
+                      </span>
+                      <span class="mt-4 line-clamp-2 text-[17px] leading-tight font-semibold text-balance text-white md:text-xl">
+                        {client.name}
+                      </span>
+                      <span class="mt-1.5 text-[12px] font-medium tracking-[0.06em] text-muted uppercase transition-colors duration-500 group-hover:text-white/80 md:text-[13px]">
+                        {formatSubs(client.subscribers)} {t.clients.subscribers}
+                      </span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
+</section>
+
+<script>
+  // Аватарки в ленте уезжают за край overflow-hidden, и нативная ленивая загрузка
+  // подгружала бы их уже на виду. Как только лента приближается к экрану — грузим все сразу.
+  document.querySelectorAll<HTMLElement>('[data-clients-marquee]').forEach((root) => {
+    const loadAll = () => {
+      root.querySelectorAll<HTMLImageElement>('img[loading="lazy"]').forEach((img) => {
+        img.loading = 'eager';
+      });
+    };
+    if (!('IntersectionObserver' in window)) {
+      loadAll();
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return;
+        loadAll();
+        io.disconnect();
+      },
+      { rootMargin: '800px 0px' },
+    );
+    io.observe(root);
+  });
+</script>

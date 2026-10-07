@@ -1,0 +1,23 @@
+// Имена иконок из Icon.astro.
+export type IconName =
+  | 'x'
+  | 'instagram'
+  | 'behance'
+  | 'telegram'
+  | 'discord'
+  | 'whatsapp'
+  | 'mail'
+  | 'arrow-up-right'
+  | 'arrow-up'
+  | 'copy'
+  | 'check'
+  | 'close'
+  | 'menu'
+  | 'chevron-left'
+  | 'chevron-right'
+  | 'plus'
+  | 'chat'
+  | 'clock'
+  | 'refresh'
+  | 'image'
+  | 'layers';
